@@ -1,6 +1,6 @@
-## Main version is here going on here :arrow_right: [Main Branch](https://github.com/net234/AppWebServer)
+## Main version is here :arrow_right: [Main Branch](https://github.com/net234/AppWebServer)
 
-# WiFiManager
+# AppWebServer
 Simple Arduino lib to build an interative aplication upon local html pages
 A file oriented Web Server build for dynamic user inteface with ESP8266 application.
 Handle simple Server connected to local WiFi or Standalone WiFi server with no connection to internet</P>
