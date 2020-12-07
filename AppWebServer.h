@@ -4,10 +4,10 @@
     Copyright 2020 Pierre HENRY net23@frdev.com All - right reserved.
 
 
-  This file is part of AppWebServer.
+   This file is part of AppWebServer.
 
     AppWebServer is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
+    it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
@@ -16,9 +16,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License
-    along with AppWebServer.  If not, see <https://www.gnu.org/licenses/lglp.txt>.
-
+    You should have received a copy of the GNU General Public License
+    along with AppWebServer.  If not, see <https://www.gnu.org/licenses/gpl.txt>.
 
   History
   cleaner version of WebServer (C) V1.2 6/6/2020  NET234 P.HENRY net23@frdev.com

@@ -1,6 +1,41 @@
-/* Gestion des pages wifisetup
-    (C) 07/2020 P.HENRY NET234
-*/
+/*************************************************
+ *************************************************
+    AppWebServer.h   part of of lib AppWebServer - Arduino lib for easy wifi interface with http and css
+    Copyright 2020 Pierre HENRY net23@frdev.com All - right reserved.
+
+
+   This file is part of AppWebServer.
+
+    AppWebServer is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    AppWebServer is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with AppWebServer.  If not, see <https://www.gnu.org/licenses/gpl.txt>.
+
+  History
+  cleaner version of WebServer (C) V1.2 6/6/2020  NET234 P.HENRY net23@frdev.com
+
+   V1.0    Extracted from Betaporte 
+   V1.0.1  Add interactive js
+   V1.0.2  Stand alone captive portal C) 07/2020 P.HENRY NET234
+   V1.0.3  1/12/2020  rewriting
+
+
+problems
+   dhcp dont work on AP with other ip than 192.164.4.1   (not a real problem)
+   unable to save in wifi flash config another AP ip than 192.164.4.1  (not a real problem)
+   mdns doesnt respond on AP   (fixed 06/12/2020)
+
+
+**********/
+
 
 
 // Scan les reseaux wifi le fill up des page comportant un arg appweb=show_wifi
