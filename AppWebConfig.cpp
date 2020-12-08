@@ -35,17 +35,16 @@
 bool FileConfig::read() {
   deviceName="";              //invalid value are replacet by APPWEB_XXYY
   webFolder = F("/web");      //default value
-  D_println(F("TW Config.read"));
-  File aFile = TWFS.open(F("/AppWebServer.conf"), "r");
-
+  D_println(F("TW get config"));
+  File aFile = TWFS.open(F("/AppWebServer.conf"), "r");  
   if (aFile) {
-    D_println(F("TW: appweb.conf present"));
+    D_println(F("TW: AppWebServer.conf present"));
   } else {
     aFile = TWFS.open(F("/AppWebServer.ini"), "r");
     if (aFile) {
       D_println(F("TW: AppWebServer.ini present"));
     }  else {
-      D_println(F("TW: no config"));
+      D_println(F("TW: no config found !!!"));
       return (false);
     }
   }
@@ -56,11 +55,15 @@ bool FileConfig::read() {
     //    D_print(F("TW: line ='")); D_print(aString); D_println("'");
     // byte N = aString[0];
     // Serial.println(N);
-    if ( aString.startsWith(F("devicename")) ) {
+    if ( aString.startsWith(F("#")) ) {
+      D_print(F("TW: '#")); D_print(aString); D_println("'");
+   } else if ( aString.startsWith(F("initinfo")) ) {
+      initInfo = getParam(aString);
+      D_print(F("TW: initinfo ='")); D_print(initInfo); D_println("'");
+    } else if ( aString.startsWith(F("devicename")) ) {
       deviceName = getParam(aString);
       D_print(F("TW: devicename ='")); D_print(deviceName); D_println("'");
-    }
-    if ( aString.startsWith(F("webfolder")) ) {
+    } else if ( aString.startsWith(F("webfolder")) ) {
       webFolder = getParam(aString);
       D_print(F("TW: webfolder ='")); D_print(webFolder); D_println("'");
     }
@@ -87,6 +90,10 @@ bool FileConfig::save() {
   if (webFolder.length() > 0) {
     aFile.print("webfolder=");
     aFile.println(webFolder);
+  }
+ if (initInfo.length() > 0) {
+    aFile.print("initinfo=");
+    aFile.println(initInfo);
   }
 
   aFile.close();

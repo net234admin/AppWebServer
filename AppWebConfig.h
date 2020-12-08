@@ -43,6 +43,7 @@ class FileConfig {
     //  bool fromFile = false;  //mean was read from a file
     bool changed = false;   //need to be saved
     String getParam(const String &astring);
+    String initInfo;
     String deviceName;
     String webFolder;
 };

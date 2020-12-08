@@ -128,7 +128,7 @@ void AppWeb::begin() {
     WiFi.persistent(true);
     delay(200);
     if (TWConfig.deviceName != WiFi.softAPSSID()) {
-      TWConfig.deviceName != WiFi.softAPSSID();
+      TWConfig.deviceName = WiFi.softAPSSID();
       TWConfig.changed = true;
       TWConfig.save();
     }
