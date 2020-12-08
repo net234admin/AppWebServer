@@ -1,6 +1,7 @@
 ## Main version is here :arrow_right: [Main Branch](https://github.com/net234/AppWebServer)
 
-# AppWebServer
+# AppWebServer betaversion
+
 Simple Arduino lib to build an interative aplication upon local html pages
 A file oriented Web Server build for dynamic user inteface with ESP8266 application.
 Handle simple Server connected to local WiFi or Standalone WiFi server with no connection to internet</P>
@@ -40,18 +41,13 @@ __This works is build and tested with the ESP8266 Arduino platform with release(
 #include <DNSServer.h>            //Local DNS Server used for redirecting all requests to the configuration portal
 #include <ESP8266WebServer.h>     //Local WebServer used to serve the configuration portal
 #include <AppWebServer.h>          //https://github.com/net234/AppWebServer
-```
+
 
 - Initialize library, in your setup function add
 ```cpp
 AppWebServer myWebServer;
 
-
-- Also in the setup function add
-```cpp
 myWebServer.begin();
-```
-
 ```
 
 After you write your sketch and start the ESP, it will try to connect to WiFi. If it fails it starts in Access Point mode.
