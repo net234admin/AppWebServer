@@ -102,7 +102,12 @@ void checkSubmitappwebWifisetup() {
     }
     delay(100);
     // TODO : check wifi before validate
-    //    AppWebPtr->setWiFiMode(twm_WIFI_STA, wifiSSD.c_str(), wifiPASS.c_str());
+    Serial.print(F("WS: Set STATION mode with '"));
+    Serial.print(wifiSSD);
+    Serial.print(F("' and '"));
+    Serial.print(wifiPASS);
+    Serial.println(F("'"));
+    WiFi.begin(wifiSSD, wifiPASS);
     Serial.print(F("request connectWiFi="));
     Serial.println(wifiSSD);
     TWS::redirectUri = F("wait.html");

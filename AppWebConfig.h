@@ -31,6 +31,8 @@
 
 #define D_print    Serial.print
 #define D_println  Serial.println
+#define D1_print    Serial.print
+#define D1_println  Serial.println
 //#define D_print(...)    while(0) {  }
 //#define D_println(...)  while(0) {  }
 
@@ -38,11 +40,16 @@
 // Objet to deal with file config
 class FileConfig {
   public:
-    bool read();        //read from file
-    bool save();        //save to file
+    bool read();        //read from file  .conf or .ini
+    bool save();        //save to file    .conf
+    bool erase();       //erase file      .conf
+
     //  bool fromFile = false;  //mean was read from a file
     bool changed = false;   //need to be saved
-    String getParam(const String &astring);
+    String initInfo;
     String deviceName;
     String webFolder;
+    int bootForceAP = 0;
+  private:
+    String getParam(const String &astring);
 };

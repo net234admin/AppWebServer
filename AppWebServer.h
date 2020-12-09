@@ -43,6 +43,8 @@ problems
 
 #define D_print    Serial.print 
 #define D_println  Serial.println 
+#define D1_print    Serial.print 
+#define D1_println  Serial.println 
 //#define D_print(...)    while(0) {  } 
 //#define D_println(...)  while(0) {  } 
 
@@ -58,6 +60,11 @@ problems
 //} WiFiMode_t;
 
 
+//Fonction WiFi.utilisée 
+//enableSTA()
+//enableAP()
+//getMode()
+
 
 // Main Object limited to one instance
 class AppWeb {
@@ -66,6 +73,7 @@ class AppWeb {
     ~AppWeb();                              // destructor mono instance
     void begin();                                   // main server start as was configured
     void end();                                     // main server stop
+    bool razConfig();                               // efface la config enregistree
 //    TW_WiFiMode_t    getWiFiMode();  // Wifi Mode expected by user 
 //    void             setWiFiMode(WiFiMode_t const mode, const char* ssid = NULL , const char* ssidpassword = NULL);
 //    void             setWiFiMode(WiFiMode_t const mode);
@@ -100,8 +108,8 @@ class AppWeb {
     //String webFolder = "/web";
     //String  _hostname;      //  SSID en mode AP et Serveur name en mode STATION
     String        _deviceName;
-    WiFiMode_t    _WiFiMode = WIFI_OFF;
-    WiFiMode_t    _newWiFiMode = WIFI_OFF;
+    WiFiMode_t    _WiFiMode = (WiFiMode_t)99;  // mode unknow
+    //WiFiMode_t    _newWiFiMode = WIFI_OFF;
     //TW_WiFiStatus_t  _WiFiStatus = tws_WIFI_TRANSITION;
 
 };

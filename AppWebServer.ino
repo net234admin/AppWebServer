@@ -219,10 +219,6 @@ void loop() {
   {
     char inChar = (char)Serial.read();
     switch (inChar) {
-      //      case 'A':
-      //        Serial.println("Wifi.begin()");
-      //        WiFi.begin();
-      //        break;
       //      case 'B':
       //        Serial.println("Wifi.mode(OFF)");
       //
@@ -313,7 +309,12 @@ void loop() {
       case 'T':
         track = !track;
         break;
-      case 'Z':
+      case 'E':
+        Serial.println("raz config file");
+        ServeurWeb.razConfig();
+        break;
+
+      case 'L':
         Serial.print("long delay ");
         for (int N = 1; N <= 30; N++) {
           delay(1000);
