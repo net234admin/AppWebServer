@@ -94,48 +94,70 @@ void AppWeb::begin() {
   TWConfig.read();
 
   Serial.setDebugOutput(true);
-  // recuperation des info en flash WIFI
-  D_println(F("tws: Read Flash config "));
+
+
+
+  // grab WiFi actual status
+  D_println(F("tws: Read wifi current status "));
+  Serial.print(F("tws: WIFI Mode "));
+  Serial.println(WiFi.getMode());
   Serial.print(F("tws: SoftAP SSID "));
   Serial.println(WiFi.softAPSSID());
   Serial.print(F("tws: SoftAP IP "));
   Serial.println(WiFi.softAPIP());
+  WiFi.persistent(false);
+  // controle de la configuration du WiFi et de la configuration demandée
+  //reconfig eventuelle de l'ip AP
+  //if ( (WiFi.getMode() & WIFI_AP) && (WiFi.softAPIP() != IPAddress(10, 10, 10, 10)) ) {
+  if ( WiFi.softAPIP() != IPAddress(10, 10, 10, 10) ) {
+    WiFiMode_t mode = WiFi.getMode();
+    D_print(F("WS: reconfig APIP 10.10.10.10"));
+    IPAddress local_IP(10, 10, 10, 10);
+    IPAddress mask(255, 255, 255, 0);
+    bool result = WiFi.softAPConfig(local_IP, local_IP, mask);
+    D_print(F(" ==> ")); D_println(result);
+    D_print(F("SW: SoftAP IP = "));
+    D_println(WiFi.softAPIP());
+    WiFi.mode(mode);
+  }
+  //  if ( TWConfig.bootForceAP > 0 && !(WiFi.getMode() & WIFI_AP) ) {
+  //    D_println(F("TWS: Force mode AP !!!"));
+  //    WiFi.enableAP(true);
+  //    //timerLimitAP=TWConfig.bootForceAP;
+  //  }
+  WiFi.persistent(true);
 
   Serial.print(F("tws: Station SSID "));
   Serial.println(WiFi.SSID());
   Serial.print(F("tws: Station IP "));
   Serial.println(WiFi.localIP());
-  _WiFiMode = (WiFiMode_t)99;
   Serial.print(F("tws: WIFI Mode "));
   Serial.println(WiFi.getMode());
   //delay(1000); // Without delay I've seen the IP address blank
-  _deviceName = WiFi.softAPSSID();
+  _deviceName = WiFi.softAPSSID();              //device name from WiFi
   //if no SSID name I suppose it is a first boot so
   //   set hostname and softap ssid to default
   //   TODO : better detect empty config
   if (_deviceName != TWConfig.deviceName) {
-    Serial.println(F("TW: Init flash"));
-    setDeviceName(TWConfig.deviceName);
-    WiFi.persistent(false);
-    WiFi.mode(WIFI_OFF);
-    delay(1000);
-    WiFi.softAP(_deviceName);
+    D_println(F("SW: need to init WiFi same as config   !!!!!"));
+    setDeviceName(TWConfig.deviceName);  //check devicename validity
+    //    WiFi.persistent(false);
+    //    WiFi.enableSTA(false);
     //    Serial.println(F("tws: Config AP"));
     //    IPAddress local_IP(10, 10, 10, 10);
     //    IPAddress gateway(10, 10, 10, 10);
     //    IPAddress mask(255, 255, 255, 0);
     //    WiFi.softAPConfig(local_IP, gateway, mask);
-    WiFi.persistent(true);
-    delay(200);
+    WiFi.softAP(_deviceName);
+    //WiFi.persistent(true);
     if (TWConfig.deviceName != WiFi.softAPSSID()) {
-      TWConfig.deviceName = WiFi.softAPSSID();
+      TWConfig.deviceName = WiFi.softAPSSID();  //put back devicename in config if needed
       TWConfig.changed = true;
       TWConfig.save();
     }
   }
   D_print(F("TW: softap="));
   D_println(WiFi.softAPSSID());
-
   // mise en place des call back web
   Server.onNotFound(HTTP_HandleRequests);
   D_println(F("TW: Serveur.begin"));
@@ -146,29 +168,22 @@ void AppWeb::begin() {
   D_print(F("TW: AP IP address: "));
   D_println(myIP);
 
-  bool result = MDNS.begin(_deviceName);
-  //MDNS.addService("http", "tcp", 80);
-  Serial.print(F("TWS: MS DNS ON : "));
-  Serial.print(_deviceName);
-  Serial.print(F(" r="));
-  Serial.println(result);
-
+  if (WiFi.getMode() != WIFI_OFF ) {
+    bool result = MDNS.begin(_deviceName);
+    Serial.print(F("TWS: MS DNS ON : "));
+    Serial.print(_deviceName);
+    Serial.print(F(" r="));
+    Serial.println(result);
+  }
 
   return ;
 }
 
-
-//void AppWeb::setWiFiMode(WiFiMode_t mode) {
-//  //WiFi.softAPdisconnect(true);
-//  //WiFi.disconnect(true);
-//  WiFi.mode(mode);
-//  //  delay(1);
-//  //  _newWiFiMode = mode;
-//  //  if (mode == WIFI_STA) {
-//  //    WiFi.begin(ssid, password);
-//  //  }
-//
-//}
+// set device name
+// Check for valid name otherwhise EFAULT_DEVICENAME "*" is used
+// if device name terminate with *  we add some mac adresse number
+//   usefull if you setup different device at the same place
+// device name is used as APname and as DNSname
 
 void AppWeb::setDeviceName(const String devicename) {
   _deviceName = devicename;
@@ -192,19 +207,34 @@ void AppWeb::handleEvent() {
   WiFiMode_t wifimode = WiFi.getMode();
   if ( _WiFiMode != wifimode) {
     _WiFiMode = wifimode;
-    MDNS.end();
-    Serial.print("TWS: Wifi mode changed : "); Serial.println(_WiFiMode);
-    if (_WiFiMode == WIFI_AP) {
-      WiFi.softAP(_deviceName);
+    // grab WiFi actual mode
+    D_print(F("SW: -- Wifi mode change to "));
+    D_println(_WiFiMode);
+    D_println(F("SW: Read wifi current mode and config "));
+    D_print(F("SW: SoftAP SSID "));
+    D_println(WiFi.softAPSSID());
+    D_print(F("SW: SoftAP IP "));
+    D_println(WiFi.softAPIP());
+
+    D_print(F("SW: Station SSID "));
+    D_println(WiFi.SSID());
+    D_print(F("SW: Station IP "));
+    D_println(WiFi.localIP());
+    MDNS.end();  // will be restarted if needed
+    if ( (_WiFiMode & WIFI_AP) && (WiFi.softAPIP() != IPAddress(10, 10, 10, 10)) ) {
+      //    if (_WiFiMode == WIFI_AP) {
+      //      WiFi.softAP(_deviceName);
+      //    }
+      //        delay(100);
+      D_println(F("WS: reconfig APIP 10.10.10.10   !!!!!!!!!!"));
+      IPAddress local_IP(10, 10, 10, 10);
+      IPAddress mask(255, 255, 255, 0);
+      bool result = WiFi.softAPConfig(local_IP, local_IP, mask);
+      D_print(F("SW: softapconfig = ")); D_println(result);
+      D_print(F("SW: SoftAP IP = "));
+      D_println(WiFi.softAPIP());
+
     }
-    //        delay(100);
-    //    Serial.println(F("TWS: Config APIP"));
-    //    IPAddress local_IP(10, 10, 10, 10);
-    //    IPAddress gateway(10, 10, 10, 10);
-    //    IPAddress mask(255, 255, 255, 0);
-    //    bool result = WiFi.softAPConfig(local_IP, gateway, mask);
-    //    D_print(F("TW: softapconfig = ")); D_println(result);
-    //  }
 
     if (_WiFiMode != WIFI_OFF) {
       //delay(100);
@@ -215,7 +245,11 @@ void AppWeb::handleEvent() {
       Serial.print(F(" r="));
       Serial.println(result);
     }
+    D_println(F("SW: -- end Wifi mode change"));
   }
+
+
+
 
   static int oldStatus = -1;
   int status = WiFi.status();
@@ -235,17 +269,10 @@ void AppWeb::handleEvent() {
 
   }
 
-  if (status == WL_DISCONNECTED && _newWiFiMode == WIFI_STA) {
-    //   WiFi.enableSTA(true);
-    _newWiFiMode = WIFI_OFF;
-  }
-  if (status == WL_DISCONNECTED && _newWiFiMode == WIFI_AP) {
-    //   WiFi.enableAP(true);
-    _newWiFiMode = WIFI_OFF;
-  }
 
   MDNS.update();
   Server.handleClient();
+
 
 }
 
@@ -263,3 +290,7 @@ void AppWeb::setCallBack_OnRefreshItem(bool (*onrefreshitem)(const String & keyn
 //void AppWeb::setCallBack_OnRepeatLine(bool (*onrepeatline)(const int num)) {     // call back pour gerer les Repeat
 //  onRepeatLinePtr = onrepeatline;
 //}
+
+bool AppWeb::razConfig() {                             // efface la config enregistree
+  return (TWConfig.erase());
+}

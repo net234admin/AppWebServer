@@ -57,15 +57,18 @@ bool FileConfig::read() {
     // Serial.println(N);
     if ( aString.startsWith(F("#")) ) {
       D_print(F("TW: '#")); D_print(aString); D_println("'");
-   } else if ( aString.startsWith(F("initinfo")) ) {
+   } else if ( aString.startsWith(F("initInfo")) ) {
       initInfo = getParam(aString);
-      D_print(F("TW: initinfo ='")); D_print(initInfo); D_println("'");
-    } else if ( aString.startsWith(F("devicename")) ) {
+      D_print(F("TW: initInfo ='")); D_print(initInfo); D_println("'");
+    } else if ( aString.startsWith(F("deviceName")) ) {
       deviceName = getParam(aString);
-      D_print(F("TW: devicename ='")); D_print(deviceName); D_println("'");
-    } else if ( aString.startsWith(F("webfolder")) ) {
+      D_print(F("TW: deviceName ='")); D_print(deviceName); D_println("'");
+    } else if ( aString.startsWith(F("webFolder")) ) {
       webFolder = getParam(aString);
-      D_print(F("TW: webfolder ='")); D_print(webFolder); D_println("'");
+      D_print(F("TW: webFolder ='")); D_print(webFolder); D_println("'");
+    } else if ( aString.startsWith(F("bootForceAP")) ) {
+      bootForceAP = getParam(aString).toInt(); 
+      D_print(F("TW: bootForceAP ='")); D_print(bootForceAP); D_println("'");
     }
   }
   aFile.close();
@@ -95,7 +98,10 @@ bool FileConfig::save() {
     aFile.print("initinfo=");
     aFile.println(initInfo);
   }
-
+  if (bootForceAP>0) {
+    aFile.print(F("bootForceAP="));
+    aFile.println(bootForceAP);
+  }
   aFile.close();
 
 
@@ -115,10 +121,15 @@ bool FileConfig::save() {
   }
   aFile.close();
   return (true);
-
-
 }
 
+// efface le fichier .conf
+bool FileConfig::erase() {
+  const String aFileName = F("/AppWebServer.conf");
+  D_println(F("TW: Erase config !!"));
+  if ( !TWFS.exists(aFileName) )  return(true);
+  return TWFS.remove(aFileName);
+}
 
 
 // recupere la chaine apres le '='  et retire l'enventuel commentaire #
