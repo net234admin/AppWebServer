@@ -140,28 +140,30 @@ void HTTP_HandleRequests() {
     //  // interception en mode captive
     D_print(F("WEB: hostHeader : "));
     D_println(Server.hostHeader());
+    //Server.uri().endsWith("redirect") ||
+      // in captive mode all requests to html or txt are re routed to "http://localip()" with a 302 reply
+      if ( !( Server.hostHeader().startsWith( WiFi.softAPIP().toString() ) )  && Server.uri().endsWith(".html") ||  Server.uri().endsWith(".txt") ) {
+        D_println(F("WEB: Request redirected to captive portal"));
+        String aStr = F("http://");
+        aStr += Server.client().localIP().toString();
+        //   aStr += F("/APSetup/WifiManagement.html");
+        Server.sendHeader("Location", aStr, true);
+        //    Serveur.sendHeader("Location", String("http://") + Serveur.client().localIP().toString() + "/APSetup/WifiManagement.html", true);
+        Server.send ( 302, "text/plain", "");
+        Server.client().stop();
+        D_println(F("WEB: --- GET closed with a 302"));
+        return;
+      }
     //
-    //  // in captive mode all requests to html or txt are re routed to "http://localip()" with a 302 reply
-    //  if (softAP && !(Serveur.hostHeader().startsWith("169.254.169.254")) && (Serveur.uri().endsWith(".html") || Serveur.uri().endsWith("redirect") || Serveur.uri().endsWith(".txt")) ) {
-    //    Serial.println(F("Request redirected to captive portal"));
-    //    String aStr = F("http://");
-    //    aStr += Serveur.client().localIP().toString();
-    //    //   aStr += F("/APSetup/WifiManagement.html");
-    //    Serveur.sendHeader("Location", aStr, true);
-    //    //    Serveur.sendHeader("Location", String("http://") + Serveur.client().localIP().toString() + "/APSetup/WifiManagement.html", true);
-    //    Serveur.send ( 302, "text/plain", "");
-    //    Serveur.client().stop();
-    //    return;
-    //  }
-    //
-    //  // specific for firefox to hide captive mode
-    //  if (softAP && Serveur.uri().endsWith("generate_204") ) {
-    //    Serial.println(F("Generate204"));
-    //    Serveur.setContentLength(0);
-    //    Serveur.send ( 204 );
-    //    Serveur.client().stop();
-    //    return;
-    //  }
+      // Gestion des Helth Check
+      if (Server.uri().endsWith("generate_204") ) {
+        Serial.println(F("Generate204"));
+        Server.setContentLength(0);
+        Server.send ( 204 );
+        Server.client().stop();
+        D_println(F("WEB: --- GET closed with a 204"));
+        return;
+      }
     //
     //  // rearm timeout for captive portal
     //  // to hide captive mode stop DNS captive if a request is good (hostheader=localip)
@@ -317,6 +319,8 @@ void HTTP_HandleRequests() {
   if (fileType != NONE) aFile = LittleFS.open(fileName, "r");
   bool doChunk = false;
   if (aFile) {
+    D_print(F("WEB: Answer with file "));
+    D_println(fileName);
     if (fileType == HTML) {
       Server.sendHeader("Cache-Control", "no-cache");
       Server.setContentLength(CONTENT_LENGTH_UNKNOWN);
@@ -419,7 +423,8 @@ void HTTP_HandleRequests() {
     }  // if avail
     if (doChunk) Server.chunkedResponseFinalize();
     //    Serial.println("<");
-    Server.client().stop();
+    //Server.client().stop();
+    D_println(F("WEB: GET answered with no stop "));
     aFile.close();
     return;
   }

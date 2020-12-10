@@ -221,20 +221,29 @@ void AppWeb::handleEvent() {
     D_println(WiFi.SSID());
     D_print(F("SW: Station IP "));
     D_println(WiFi.localIP());
-    MDNS.end();  // will be restarted if needed
-    if ( (_WiFiMode & WIFI_AP) && (WiFi.softAPIP() != IPAddress(10, 10, 10, 10)) ) {
-      //    if (_WiFiMode == WIFI_AP) {
-      //      WiFi.softAP(_deviceName);
-      //    }
-      //        delay(100);
-      D_println(F("WS: reconfig APIP 10.10.10.10   !!!!!!!!!!"));
-      IPAddress local_IP(10, 10, 10, 10);
-      IPAddress mask(255, 255, 255, 0);
-      bool result = WiFi.softAPConfig(local_IP, local_IP, mask);
-      D_print(F("SW: softapconfig = ")); D_println(result);
-      D_print(F("SW: SoftAP IP = "));
-      D_println(WiFi.softAPIP());
 
+    captiveDNSStop();
+    MDNS.end();  // will be restarted if needed
+
+    if (_WiFiMode & WIFI_AP) {
+      captiveDNSStart();
+
+
+      if (WiFi.softAPIP() != IPAddress(10, 10, 10, 10) ) {
+
+        //    if (_WiFiMode == WIFI_AP) {
+        //      WiFi.softAP(_deviceName);
+        //    }
+        //        delay(100);
+        D_println(F("WS: reconfig APIP 10.10.10.10   !!!!!!!!!!"));
+        IPAddress local_IP(10, 10, 10, 10);
+        IPAddress mask(255, 255, 255, 0);
+        bool result = WiFi.softAPConfig(local_IP, local_IP, mask);
+        D_print(F("SW: softapconfig = ")); D_println(result);
+        D_print(F("SW: SoftAP IP = "));
+        D_println(WiFi.softAPIP());
+
+      }
     }
 
     if (_WiFiMode != WIFI_OFF) {
@@ -273,6 +282,7 @@ void AppWeb::handleEvent() {
 
   MDNS.update();
   Server.handleClient();
+  handleCaptivePortal();
 
 
 }

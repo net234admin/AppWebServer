@@ -101,7 +101,7 @@ bool FileConfig::save() {
  }
  
   if (APwebFolder.length() > 0) {
-    aFile.print(F_APwebFolder);
+    aFile.print(FPSTR(F_APwebFolder));
     aFile.print('=');
     aFile.println(APwebFolder);
   }

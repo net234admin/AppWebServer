@@ -28,7 +28,7 @@
 
 //bool softAPRequested = false;
 //bool softAP = false;            //Captive portal active
-//bool captiveDNS = false;               //Captive portal DNS active
+bool captiveDNS = false;               //Captive portal DNS active
 //bool rootWifiSetup = false;             //Specific for CaptivePortal WifiSetup hold in a sub repertory
 //unsigned long timerCaptivePortal;      //Used to timeout Captive portal
 //unsigned long timerCaptiveDNS;         //Used to reactive captive portal DNS
@@ -37,39 +37,41 @@
 
 
 //// CaptiveDNS is active until a request to setupServer is done
-//void   captiveDNSStart() {
-//  Serial.println("Captive DNS ON");
-//  /* Setup the DNS server redirecting all the domains to the apIP */
-//  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-//  dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
-//  captiveDNS = true;
-//  //timerCaptivePortal = millis();
-//}
+void   captiveDNSStart() {
+  D_println(F("DNS: Captive DNS ON"));
+  /* Setup the DNS server redirecting all the domains to the apIP */
+  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+  if (!dnsServer.start(DNS_PORT, "*", WiFi.softAPIP()) ) {
+    D1_println(F("DNS: Captive DNS erreur !!!!"));
+  }
+  captiveDNS = true;
+  //timerCaptivePortal = millis();
+}
 
 
-//void captiveDNSStop() {
-//  Serial.println("Captive DNS OFF");
-//  dnsServer.stop();
-//  captiveDNS = false;
-//  // rearme le timerCaptiveDNS
-//  timerCaptiveDNS = millis();
-//}
+void captiveDNSStop() {
+  D_println(F("DNS: Captive DNS OFF"));
+  dnsServer.stop();
+  captiveDNS = false;
+  // rearme le timerCaptiveDNS
+  //timerCaptiveDNS = millis();
+}
 
-//void handleCaptivePortal() {
+void handleCaptivePortal() {
 //#define DELAY_NOVALIDPAGE 1U * 60 * 1000
 //#define CAPTIVEPORTAL_TIMEOUT  2U * 60 * 1000
-//
+
 //  if (softAP && millis() - timerCaptivePortal > CAPTIVEPORTAL_TIMEOUT) {
 //    if (miniServerPtr) miniServerPtr->configureWiFi(false);  //Stop captive
 //    WiFi.begin();
 //    return;
 //  }
-//  // if no request arrived we rearm captive DNS
+  // if no request arrived we rearm captive DNS
 //  if (!captiveDNS && millis() - timerCaptiveDNS > DELAY_NOVALIDPAGE) {
 //    captiveDNSStart();
 //  }
-//  if (captiveDNS) dnsServer.processNextRequest();
-//}
+  if (captiveDNS) dnsServer.processNextRequest();
+}
 
 //bool    newConfigTry = false;
 //bool    newConfigValide = false;
