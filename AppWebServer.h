@@ -50,6 +50,9 @@ problems
 
 
 #define SERVER_PORT 80                    // default port for http
+// DNS server
+#define DNS_PORT  53
+
 //#define SERVER_APSETUPTIMEOUT (3 * 60 )       // Timeout to release mode WIFI_APSETUP
 #define DEFAULT_DEVICENAME "APPWEB_"
 

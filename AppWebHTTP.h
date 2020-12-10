@@ -99,6 +99,9 @@ bool onRepeatLine(const String &repeatname, const int num) {
   return (false);
 }
 
+
+
+
 //// Dealing with WEB HTTP request
 //#define LOCHex2Char(X) (X + (X <= 9 ? '0' : ('A' - 10)))
 char LOCHex2Char( byte aByte) {
@@ -112,47 +115,65 @@ void HTTP_HandleRequests() {
   Serial.print(Server.uri());
   Serial.print(F("' from "));
   Serial.print(Server.client().remoteIP());
+  Serial.print(':');
+  Serial.print(Server.client().remotePort());
+  Serial.print(F(" <= "));
+  Serial.print(Server.client().localIP());
+  Serial.print(':');
+  Serial.print(Server.client().localPort());
   Serial.println();
 
-  //  // interception en mode captive
-  //  Serial.print(F("hostHeader : "));
-  //  Serial.print(Serveur.hostHeader());
-  //  Serial.println();
-  //
-  //  // in captive mode all requests to html or txt are re routed to "http://localip()" with a 302 reply
-  //  if (softAP && !(Serveur.hostHeader().startsWith("169.254.169.254")) && (Serveur.uri().endsWith(".html") || Serveur.uri().endsWith("redirect") || Serveur.uri().endsWith(".txt")) ) {
-  //    Serial.println(F("Request redirected to captive portal"));
-  //    String aStr = F("http://");
-  //    aStr += Serveur.client().localIP().toString();
-  //    //   aStr += F("/APSetup/WifiManagement.html");
-  //    Serveur.sendHeader("Location", aStr, true);
-  //    //    Serveur.sendHeader("Location", String("http://") + Serveur.client().localIP().toString() + "/APSetup/WifiManagement.html", true);
-  //    Serveur.send ( 302, "text/plain", "");
-  //    Serveur.client().stop();
-  //    return;
-  //  }
-  //
-  //  // specific for firefox to hide captive mode
-  //  if (softAP && Serveur.uri().endsWith("generate_204") ) {
-  //    Serial.println(F("Generate204"));
-  //    Serveur.setContentLength(0);
-  //    Serveur.send ( 204 );
-  //    Serveur.client().stop();
-  //    return;
-  //  }
-  //
-  //  // rearm timeout for captive portal
-  //  // to hide captive mode stop DNS captive if a request is good (hostheader=localip)
-  //  if (softAP) {
-  //    timerCaptivePortal = millis();
-  //    if (captiveDNS) captiveDNSStop();
-  //  }
-  //
-  //
-  // standard query are rooted to web folder
-  String fileName = TWConfig.webFolder;  //default /web
-  //  // captive query are rooted to /web/wifisetup folder
-  //  if (rootWifiSetup) fileName += "/wifisetup";
+  // find if client call STATION or AP
+  String fileName = TWConfig.webFolder; //default /web;
+  if ( Server.client().localIP() == WiFi.localIP() ) {
+    // specific for station nothing special to do
+    D_println(F("WEB: answer as STATION"));
+    
+  } else if ( Server.client().localIP() != WiFi.softAPIP() ) {
+    // specific for unknow client -> abort request
+    D1_println(F("WEB: unknown client IP !!!!"));
+    return;
+  } else {
+    // specific for AP client -> check specific config for filename and handle Captive mode
+    D_println(F("WEB: answer as AP"));
+    if (TWConfig.APwebFolder.length() > 0) fileName = TWConfig.APwebFolder; //default /web/wifisetup
+    //  // interception en mode captive
+    D_print(F("WEB: hostHeader : "));
+    D_println(Server.hostHeader());
+    //Server.uri().endsWith("redirect") ||
+      // in captive mode all requests to html or txt are re routed to "http://localip()" with a 302 reply
+      if ( !( Server.hostHeader().startsWith( WiFi.softAPIP().toString() ) )  && Server.uri().endsWith(".html") ||  Server.uri().endsWith(".txt") ) {
+        D_println(F("WEB: Request redirected to captive portal"));
+        String aStr = F("http://");
+        aStr += Server.client().localIP().toString();
+        //   aStr += F("/APSetup/WifiManagement.html");
+        Server.sendHeader("Location", aStr, true);
+        //    Serveur.sendHeader("Location", String("http://") + Serveur.client().localIP().toString() + "/APSetup/WifiManagement.html", true);
+        Server.send ( 302, "text/plain", "");
+        Server.client().stop();
+        D_println(F("WEB: --- GET closed with a 302"));
+        return;
+      }
+    //
+      // Gestion des Helth Check
+      if (Server.uri().endsWith("generate_204") ) {
+        Serial.println(F("Generate204"));
+        Server.setContentLength(0);
+        Server.send ( 204 );
+        Server.client().stop();
+        D_println(F("WEB: --- GET closed with a 204"));
+        return;
+      }
+    //
+    //  // rearm timeout for captive portal
+    //  // to hide captive mode stop DNS captive if a request is good (hostheader=localip)
+    //  if (softAP) {
+    //    timerCaptivePortal = millis();
+    //    if (captiveDNS) captiveDNSStop();
+    //  }
+    //
+    //
+  }
 
   fileName += Server.uri();
   // todo   protection against ../
@@ -298,6 +319,8 @@ void HTTP_HandleRequests() {
   if (fileType != NONE) aFile = LittleFS.open(fileName, "r");
   bool doChunk = false;
   if (aFile) {
+    D_print(F("WEB: Answer with file "));
+    D_println(fileName);
     if (fileType == HTML) {
       Server.sendHeader("Cache-Control", "no-cache");
       Server.setContentLength(CONTENT_LENGTH_UNKNOWN);
@@ -322,7 +345,7 @@ void HTTP_HandleRequests() {
         // standard file (not HTML) are with 1024 byte buffer
         size = aFile.readBytes( aBuffer, 1024 );
       } else {
-        
+
         // chunked file are read line by line with spefic keyword detection
         // first keyword is [# REPEAT_LINE xxxxxx#]
         if (!repeatActive) {  // if repeat we will send the repeat line
@@ -400,7 +423,8 @@ void HTTP_HandleRequests() {
     }  // if avail
     if (doChunk) Server.chunkedResponseFinalize();
     //    Serial.println("<");
-    Server.client().stop();
+    //Server.client().stop();
+    D_println(F("WEB: GET answered with no stop "));
     aFile.close();
     return;
   }

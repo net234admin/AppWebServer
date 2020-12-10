@@ -31,14 +31,14 @@ FileConfig  TWConfig;
 
 #include <ESP8266WebServer.h>   // web server to answer WEB request and EEDOMUS BOX request
 #include <ESP8266mDNS.h>      // not used here we stay with IP on this side (Wifimanageg need id on his side)
-//#include <DNSServer.h>        // only used by capture portal to redirect web request to main page
+#include <DNSServer.h>        // only used by captive to redirect web request to main page
 // ====== DO NOT REMOVE ===========================
 
 
 // Server Instance
 //#include "user_interface.h"
 ESP8266WebServer   Server(SERVER_PORT);    // Serveur HTTP
-//DNSServer          dnsServer;
+DNSServer          dnsServer;
 
 namespace TWS {
 // Out of instance variables
@@ -47,6 +47,7 @@ String  localIp;
 
 // Out of instance function
 #include "AppWebHTTP.h"    //out of instance functions
+#include "AppWebCaptive.h"    //out of instance functions
 
 }
 
@@ -86,7 +87,7 @@ void AppWeb::end() {
 void AppWeb::begin() {
   // FS
   if (!TWFS.begin()) {
-    D_println(F("TW: FS en erreur"));
+    D1_println(F("TW: FS en erreur  !!!!!"));
   } else {
     D_println(F("TW: FS Ok"));
   }
@@ -138,19 +139,19 @@ void AppWeb::begin() {
   //if no SSID name I suppose it is a first boot so
   //   set hostname and softap ssid to default
   //   TODO : better detect empty config
-  if (_deviceName != TWConfig.deviceName) {
-    D_println(F("SW: need to init WiFi same as config   !!!!!"));
+  if ( TWConfig.deviceName != _deviceName) {
+    D_print(F("SW: need to init WiFi same as config   !!!!! "));
+    D_print(TWConfig.deviceName);
+    D_print(F("!="));
+    D_println(_deviceName);
     setDeviceName(TWConfig.deviceName);  //check devicename validity
-    //    WiFi.persistent(false);
-    //    WiFi.enableSTA(false);
-    //    Serial.println(F("tws: Config AP"));
-    //    IPAddress local_IP(10, 10, 10, 10);
-    //    IPAddress gateway(10, 10, 10, 10);
-    //    IPAddress mask(255, 255, 255, 0);
-    //    WiFi.softAPConfig(local_IP, gateway, mask);
     WiFi.softAP(_deviceName);
     //WiFi.persistent(true);
     if (TWConfig.deviceName != WiFi.softAPSSID()) {
+      D_print(F("SW: need to need to rewrite config   !!!!! "));
+      D_print(TWConfig.deviceName);
+      D_print(F("!="));
+      D_println(WiFi.softAPSSID());
       TWConfig.deviceName = WiFi.softAPSSID();  //put back devicename in config if needed
       TWConfig.changed = true;
       TWConfig.save();
@@ -220,20 +221,29 @@ void AppWeb::handleEvent() {
     D_println(WiFi.SSID());
     D_print(F("SW: Station IP "));
     D_println(WiFi.localIP());
-    MDNS.end();  // will be restarted if needed
-    if ( (_WiFiMode & WIFI_AP) && (WiFi.softAPIP() != IPAddress(10, 10, 10, 10)) ) {
-      //    if (_WiFiMode == WIFI_AP) {
-      //      WiFi.softAP(_deviceName);
-      //    }
-      //        delay(100);
-      D_println(F("WS: reconfig APIP 10.10.10.10   !!!!!!!!!!"));
-      IPAddress local_IP(10, 10, 10, 10);
-      IPAddress mask(255, 255, 255, 0);
-      bool result = WiFi.softAPConfig(local_IP, local_IP, mask);
-      D_print(F("SW: softapconfig = ")); D_println(result);
-      D_print(F("SW: SoftAP IP = "));
-      D_println(WiFi.softAPIP());
 
+    captiveDNSStop();
+    MDNS.end();  // will be restarted if needed
+
+    if (_WiFiMode & WIFI_AP) {
+      captiveDNSStart();
+
+
+      if (WiFi.softAPIP() != IPAddress(10, 10, 10, 10) ) {
+
+        //    if (_WiFiMode == WIFI_AP) {
+        //      WiFi.softAP(_deviceName);
+        //    }
+        //        delay(100);
+        D_println(F("WS: reconfig APIP 10.10.10.10   !!!!!!!!!!"));
+        IPAddress local_IP(10, 10, 10, 10);
+        IPAddress mask(255, 255, 255, 0);
+        bool result = WiFi.softAPConfig(local_IP, local_IP, mask);
+        D_print(F("SW: softapconfig = ")); D_println(result);
+        D_print(F("SW: SoftAP IP = "));
+        D_println(WiFi.softAPIP());
+
+      }
     }
 
     if (_WiFiMode != WIFI_OFF) {
@@ -272,6 +282,7 @@ void AppWeb::handleEvent() {
 
   MDNS.update();
   Server.handleClient();
+  handleCaptivePortal();
 
 
 }

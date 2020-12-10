@@ -97,8 +97,19 @@ void checkSubmitappwebWifisetup() {
     aString.trim();
     Serial.print(F("Got Hostname="));
     Serial.print(aString);
-    if (!aString.equals(TWConfig.deviceName) ) {
+    if (!(aString.equals(TWConfig.deviceName) && aString.length() >= 2 && aString.length() <= 32) ) {
+      D1_print(F("SW: device name changed   !!!!! "));
       AppWebPtr->setDeviceName(aString);
+     if (TWConfig.deviceName != aString) {
+      D1_print(F("SW: need to rewrite config   !!!!! "));
+      D_print(TWConfig.deviceName);
+      D_print(F("!="));
+      D_println(aString);
+      TWConfig.deviceName = aString;  //put back devicename in config if needed
+      TWConfig.changed = true;
+      TWConfig.save();
+    }
+
     }
     delay(100);
     // TODO : check wifi before validate
