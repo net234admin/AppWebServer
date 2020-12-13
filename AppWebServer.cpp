@@ -121,11 +121,13 @@ void AppWeb::begin() {
     D_println(WiFi.softAPIP());
     WiFi.mode(mode);
   }
-  //  if ( TWConfig.bootForceAP > 0 && !(WiFi.getMode() & WIFI_AP) ) {
-  //    D_println(F("TWS: Force mode AP !!!"));
-  //    WiFi.enableAP(true);
-  //    //timerLimitAP=TWConfig.bootForceAP;
-  //  }
+
+  if ( TWConfig.bootForceAP > 0 && !(WiFi.getMode() & WIFI_AP) ) {
+    D_println(F("TWS: Force mode AP !!!"));
+    
+    WiFi.enableAP(true);   // wifi est non persistant 
+    //timerLimitAP=TWConfig.bootForceAP;
+  }
   WiFi.persistent(true);
 
   Serial.print(F("tws: Station SSID "));

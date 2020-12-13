@@ -22,13 +22,13 @@
   History
   cleaner version of WebServer (C) V1.2 6/6/2020  NET234 P.HENRY net23@frdev.com
 
-   V1.0    Extracted from Betaporte 
+   V1.0    Extracted from Betaporte
    V1.0.1  Add interactive js
    V1.0.2  Stand alone captive portal C) 07/2020 P.HENRY NET234
    V1.0.3  1/12/2020  rewriting
 
 
-problems
+  problems
    dhcp dont work on AP with other ip than 192.164.4.1   (not a real problem)
    unable to save in wifi flash config another AP ip than 192.164.4.1  (not a real problem)
    mdns doesnt respond on AP   (fixed 06/12/2020)
@@ -40,7 +40,7 @@ problems
 
 // Scan les reseaux wifi le fill up des page comportant un arg appweb=show_wifi
 //#define MAXNETWORK 30
-const uint8_t MAXNETWORK=30;
+const uint8_t MAXNETWORK = 30;
 
 int network[MAXNETWORK + 1];
 int networkSize = 0;
@@ -83,24 +83,47 @@ bool repeatLineScanNetwork(const int num) {
   return (num < networkSize && RSSIdbToPercent(network[num]) > 25 );
 }
 
+//TODO  make a pointed struc to avoid memory lost
+String TrySSID;
+String TryPASS;
+String TryDeviceName;
+
+/////////////============submit appweb_wifisetup ==============////////////////////
 // gestion du submit appweb_wifisetup
 void checkSubmitappwebWifisetup() {
 
   // TODO : add a check for pagename
+  // Check SSID validity
   String aString = Server.arg(F("SSID"));
   aString.trim();
-  if (aString.length() >= 2 && aString.length() <= 32) {
+  if (aString.length() <= 2 && aString.length() > 30) {
+    return;
+  }
+  TrySSID = aString;
 
-    String wifiSSD = aString;
-    String wifiPASS = Server.arg(F("PASS"));
-    aString = Server.arg(F("HOSTNAME"));
-    aString.trim();
-    Serial.print(F("Got Hostname="));
-    Serial.print(aString);
-    if (!(aString.equals(TWConfig.deviceName) && aString.length() >= 2 && aString.length() <= 32) ) {
-      D1_print(F("SW: device name changed   !!!!! "));
-      AppWebPtr->setDeviceName(aString);
-     if (TWConfig.deviceName != aString) {
+  aString = Server.arg(F("HOSTNAME"));
+  aString.trim();
+  if (aString.length() <= 2 && aString.length() > 30) {
+    return;
+  }
+  TryDeviceName = aString;
+
+  TryPASS = Server.arg(F("PASS"));
+  TryPASS.trim();
+ 
+  TWS::redirectUri = F("wait.html");
+}
+
+//////////////////
+void tryConfigWifisetup() {
+  String aString;
+  aString.trim();
+  Serial.print(F("Got Hostname="));
+  Serial.print(aString);
+  if (!(aString.equals(TWConfig.deviceName) && aString.length() >= 2 && aString.length() <= 32) ) {
+    D1_print(F("SW: device name changed   !!!!! "));
+    AppWebPtr->setDeviceName(aString);
+    if (TWConfig.deviceName != aString) {
       D1_print(F("SW: need to rewrite config   !!!!! "));
       D_print(TWConfig.deviceName);
       D_print(F("!="));
@@ -110,17 +133,16 @@ void checkSubmitappwebWifisetup() {
       TWConfig.save();
     }
 
-    }
-    delay(100);
-    // TODO : check wifi before validate
-    Serial.print(F("WS: Set STATION mode with '"));
-    Serial.print(wifiSSD);
-    Serial.print(F("' and '"));
-    Serial.print(wifiPASS);
-    Serial.println(F("'"));
-    WiFi.begin(wifiSSD, wifiPASS);
-    Serial.print(F("request connectWiFi="));
-    Serial.println(wifiSSD);
-    TWS::redirectUri = F("wait.html");
   }
+  delay(100);
+  // TODO : check wifi before validate
+//  Serial.print(F("WS: Set STATION mode with '"));
+//  Serial.print(wifiSSD);
+//  Serial.print(F("' and '"));
+//  Serial.print(wifiPASS);
+//  Serial.println(F("'"));
+//  WiFi.begin(wifiSSD, wifiPASS);
+//  Serial.print(F("request connectWiFi="));
+//  Serial.println(wifiSSD);
+
 }

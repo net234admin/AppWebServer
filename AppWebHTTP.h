@@ -66,6 +66,20 @@ void translateKey(String &key) {
 
 // onRequest callback
 //pointer du gestionaire de request
+void (*onEndOfRequestPtr)(const String &filename, const String &submitvalue) = NULL;
+
+void onEndOfRequest(const String &filename, const String &submitvalue) {
+
+  // track "form appweb_wifisetup" qui retoune SSID PASS et HOSTNAME eq deviceName
+  if (&submitvalue && submitvalue.equals(F("appweb_tryConfig")) ) {
+    tryConfigWifisetup();
+    return;
+  }
+  if (onEndOfRequestPtr) (*onEndOfRequestPtr)(filename, submitvalue);
+}
+
+// onRequest callback
+//pointer du gestionaire de request
 void (*onRequestPtr)(const String &filename, const String &submitvalue) = NULL;
 
 void onRequest(const String &filename, const String &submitvalue) {
@@ -77,6 +91,8 @@ void onRequest(const String &filename, const String &submitvalue) {
   }
   if (onRequestPtr) (*onRequestPtr)(filename, submitvalue);
 }
+
+
 
 
 //pointeur du gestionanire de refresh
@@ -426,6 +442,7 @@ void HTTP_HandleRequests() {
     //Server.client().stop();
     D_println(F("WEB: GET answered with no stop "));
     aFile.close();
+    onEndOfRequest(fileName, *submitPtr);
     return;
   }
   //  deal with file not found
@@ -445,4 +462,5 @@ void HTTP_HandleRequests() {
   message += "<H2><a href=\"/\">go home</a></H2><br>";
   Server.send(404, "text/html", message);
   Server.client().stop();
+  
 }
