@@ -348,7 +348,8 @@ void HTTP_HandleRequests() {
     Server.send(200, fileMIME.c_str());
     aFile.setTimeout(0);   // to avoid delay at EOF
     static    char aBuffer[1025];               // static dont overload heap
-    static    char repeatBuffer[1025];          // static dont overload heap
+    //static    char repeatBuffer[1025];          // static dont overload heap
+    String repeatString;
     //todo avoid repeatBuffer if repeat not used
     int  repeatNumber;
     bool repeatActive = false;
@@ -383,8 +384,8 @@ void HTTP_HandleRequests() {
               stopPtr += 2;     // pass "#]"             // grab keyword
               aStrKey = startPtr;
               aStrKey.trim();
-              // Save the line in  repeat buffer
-              strcpy(repeatBuffer, stopPtr );
+              // Save the line in a String;
+              repeatString = stopPtr; // copie dans une string
               repeatActive = true;
               repeatNumber = 0;
             } // end if  repeat KEY ok
@@ -394,7 +395,7 @@ void HTTP_HandleRequests() {
           aBuffer[0] = 0x00;
           // ask the sketch if we should repeat
           repeatActive = onRepeatLine(aStrKey, repeatNumber++);
-          if ( repeatActive ) strcpy(aBuffer, repeatBuffer);
+          if ( repeatActive ) strcpy(aBuffer, repeatString.c_str());
           size = strlen(aBuffer);
         }
 
@@ -412,21 +413,24 @@ void HTTP_HandleRequests() {
           stopPtr += 2;     // pass "#]"
 
           String aStr;
-          aStr.reserve(100);
+          //          aStr.reserve(50);
           aStr = startPtr;
           aStr.trim();
+
           // callback to deal with keywords
           translateKey(aStr);
 
           // Copie de la suite de la chaine ailleur
-          static  char bBuffer[500];   //  todo   deal correctly with over 500 char lines  // static dont overload heap
-          strncpy(bBuffer, stopPtr, 500);
-
+          
+          //static  char bBuffer[500];   //  todo   deal correctly with over 500 char lines  // static dont overload heap
+          //strncpy(bBuffer, stopPtr, 500);
+          String bBuffer = stopPtr;  // copie du reste de la chaine
+          
           // Ajout de la chaine de remplacement
           strncpy(currentPtr, aStr.c_str(), 100);
           currentPtr += aStr.length();
           // Ajoute la suite
-          strncpy(currentPtr, bBuffer, 500);
+          strncpy(currentPtr, bBuffer.c_str(), 500);
           size = strlen(aBuffer);
 
           //

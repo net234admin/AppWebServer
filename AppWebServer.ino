@@ -161,6 +161,8 @@ void loop() {
     if (track) {
       Serial.print("loop = ");
       Serial.println(parsec);
+     Serial.print("  Free = ");
+      Serial.println(ESP.getFreeHeap());
 
     }
     parsec = 0;
