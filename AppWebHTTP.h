@@ -144,7 +144,7 @@ void HTTP_HandleRequests() {
   if ( Server.client().localIP() == WiFi.localIP() ) {
     // specific for station nothing special to do
     D_println(F("WEB: answer as STATION"));
-    
+
   } else if ( Server.client().localIP() != WiFi.softAPIP() ) {
     // specific for unknow client -> abort request
     D1_println(F("WEB: unknown client IP !!!!"));
@@ -157,29 +157,29 @@ void HTTP_HandleRequests() {
     D_print(F("WEB: hostHeader : "));
     D_println(Server.hostHeader());
     //Server.uri().endsWith("redirect") ||
-      // in captive mode all requests to html or txt are re routed to "http://localip()" with a 302 reply
-      if ( !( Server.hostHeader().startsWith( WiFi.softAPIP().toString() ) )  && Server.uri().endsWith(".html") ||  Server.uri().endsWith(".txt") ) {
-        D_println(F("WEB: Request redirected to captive portal"));
-        String aStr = F("http://");
-        aStr += Server.client().localIP().toString();
-        //   aStr += F("/APSetup/WifiManagement.html");
-        Server.sendHeader("Location", aStr, true);
-        //    Serveur.sendHeader("Location", String("http://") + Serveur.client().localIP().toString() + "/APSetup/WifiManagement.html", true);
-        Server.send ( 302, "text/plain", "");
-        Server.client().stop();
-        D_println(F("WEB: --- GET closed with a 302"));
-        return;
-      }
+    // in captive mode all requests to html or txt are re routed to "http://localip()" with a 302 reply
+    if ( !( Server.hostHeader().startsWith( WiFi.softAPIP().toString() ) )  && Server.uri().endsWith(".html") ||  Server.uri().endsWith(".txt") ) {
+      D_println(F("WEB: Request redirected to captive portal"));
+      String aStr = F("http://");
+      aStr += Server.client().localIP().toString();
+      //   aStr += F("/APSetup/WifiManagement.html");
+      Server.sendHeader("Location", aStr, true);
+      //    Serveur.sendHeader("Location", String("http://") + Serveur.client().localIP().toString() + "/APSetup/WifiManagement.html", true);
+      Server.send ( 302, "text/plain", "");
+      Server.client().stop();
+      D_println(F("WEB: --- GET closed with a 302"));
+      return;
+    }
     //
-      // Gestion des Helth Check
-      if (Server.uri().endsWith("generate_204") ) {
-        Serial.println(F("Generate204"));
-        Server.setContentLength(0);
-        Server.send ( 204 );
-        Server.client().stop();
-        D_println(F("WEB: --- GET closed with a 204"));
-        return;
-      }
+    // Gestion des Helth Check
+    if (Server.uri().endsWith("generate_204") ) {
+      Serial.println(F("Generate204"));
+      Server.setContentLength(0);
+      Server.send ( 204 );
+      Server.client().stop();
+      D_println(F("WEB: --- GET closed with a 204"));
+      return;
+    }
     //
     //  // rearm timeout for captive portal
     //  // to hide captive mode stop DNS captive if a request is good (hostheader=localip)
@@ -379,13 +379,12 @@ void HTTP_HandleRequests() {
             int len = stopPtr - startPtr;
             if (  stopPtr && len >= 3 && len <= 40 ) { // grab keyword if stop ok and lenth of keyword under 40
               // grab keyword
-              char aKey[41];
-              strncpy(aKey, startPtr, len);
-              aKey[len] = 0x00;   // aKey is Cstring
-              aStrKey = aKey;
+              stopPtr[0] = 0x00; // end of keyword
+              stopPtr += 2;     // pass "#]"             // grab keyword
+              aStrKey = startPtr;
               aStrKey.trim();
               // Save the line in  repeat buffer
-              strcpy(repeatBuffer, stopPtr + 2);
+              strcpy(repeatBuffer, stopPtr );
               repeatActive = true;
               repeatNumber = 0;
             } // end if  repeat KEY ok
@@ -405,23 +404,23 @@ void HTTP_HandleRequests() {
           char* startPtr = currentPtr + 2;
           char* stopPtr = strstr( startPtr + 1, "#]" ); // at least 1 letter keyword [#  #]
           int len = stopPtr - startPtr;
-          if (  !stopPtr || len <= 0 || len >= 40 ) { // abort if no stop or lenth of keyword over 40
+          if (  !stopPtr || len <= 0 || len >= 50 ) { // abort if no stop or lenth of keyword over 40
             break;
           }
           // grab keyword
-          char aKey[41];
-          strncpy(aKey, startPtr, len);
-          aKey[len] = 0x00;   // aKey is Cstring
+          stopPtr[0] = 0x00; // end of keyword
+          stopPtr += 2;     // pass "#]"
+
           String aStr;
           aStr.reserve(100);
-          aStr = aKey;
+          aStr = startPtr;
           aStr.trim();
           // callback to deal with keywords
           translateKey(aStr);
 
           // Copie de la suite de la chaine ailleur
           static  char bBuffer[500];   //  todo   deal correctly with over 500 char lines  // static dont overload heap
-          strncpy(bBuffer, stopPtr + 2, 500);
+          strncpy(bBuffer, stopPtr, 500);
 
           // Ajout de la chaine de remplacement
           strncpy(currentPtr, aStr.c_str(), 100);
@@ -462,5 +461,5 @@ void HTTP_HandleRequests() {
   message += "<H2><a href=\"/\">go home</a></H2><br>";
   Server.send(404, "text/html", message);
   Server.client().stop();
-  
+
 }
