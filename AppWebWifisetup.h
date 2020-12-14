@@ -110,39 +110,50 @@ void checkSubmitappwebWifisetup() {
 
   TryPASS = Server.arg(F("PASS"));
   TryPASS.trim();
- 
+
   TWS::redirectUri = F("wait.html");
 }
 
-//////////////////
+////////////////// Try the config of submit ////////////
 void tryConfigWifisetup() {
-  String aString;
-  aString.trim();
+  if (TryDeviceName.length() == 0 ) {
+    D1_println(F("WEB: Illegal  ConfigWifisetup  !!!!"));
+               return;
+  }
+
+  TryDeviceName.trim();
   Serial.print(F("Got Hostname="));
-  Serial.print(aString);
-  if (!(aString.equals(TWConfig.deviceName) && aString.length() >= 2 && aString.length() <= 32) ) {
+  Serial.print(TryDeviceName);
+  if (!(TryDeviceName.equals(TWConfig.deviceName) && TryDeviceName.length() >= 2 && TryDeviceName.length() <= 32) ) {
     D1_print(F("SW: device name changed   !!!!! "));
-    AppWebPtr->setDeviceName(aString);
-    if (TWConfig.deviceName != aString) {
+    AppWebPtr->setDeviceName(TryDeviceName);
+    if (TWConfig.deviceName != AppWebPtr->_deviceName) {
       D1_print(F("SW: need to rewrite config   !!!!! "));
-      D_print(TWConfig.deviceName);
+      D_print(AppWebPtr->_deviceName);
       D_print(F("!="));
-      D_println(aString);
-      TWConfig.deviceName = aString;  //put back devicename in config if needed
+      D_println(TryDeviceName);
+      TWConfig.deviceName = AppWebPtr->_deviceName;  //put back devicename in config if needed
+      
+      WiFi.softAP(AppWebPtr->_deviceName);
       TWConfig.changed = true;
       TWConfig.save();
     }
-
   }
+
+
   delay(100);
   // TODO : check wifi before validate
-//  Serial.print(F("WS: Set STATION mode with '"));
-//  Serial.print(wifiSSD);
-//  Serial.print(F("' and '"));
-//  Serial.print(wifiPASS);
-//  Serial.println(F("'"));
-//  WiFi.begin(wifiSSD, wifiPASS);
-//  Serial.print(F("request connectWiFi="));
-//  Serial.println(wifiSSD);
+  //  Serial.print(F("WS: Set STATION mode with '"));
+  //  Serial.print(wifiSSD);
+  //  Serial.print(F("' and '"));
+  //  Serial.print(wifiPASS);
+  //  Serial.println(F("'"));
+  WiFi.begin(TrySSID, TryPASS);
+  Serial.print(F("request connectWiFi="));
+  Serial.println(TrySSID);
+  TryDeviceName="";
+  TrySSID="";
+  TryPASS="";
+  
 
 }

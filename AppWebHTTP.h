@@ -28,7 +28,11 @@ void (*onTranslateKeyPtr)(String &key) = NULL;
 
 //todo start all internal key with "_" to skip them faster
 void translateKey(String &key) {
-  if ( key.equals(F("_CHIP_ID")) ) {
+  if ( key.startsWith(F("PAGEID ")) ) {
+    D_print(F("WEB: pageID=")); D_print(key);
+    AppWebPtr->page_id = key;
+    key = "";
+  } else if ( key.equals(F("_CHIP_ID")) ) {
     key = ESP.getChipId();
   } else if ( key.equals(F("_FLASH_CHIP_ID")) ) {
     key = ESP.getFlashChipId();
@@ -71,7 +75,8 @@ void (*onEndOfRequestPtr)(const String &filename, const String &submitvalue) = N
 void onEndOfRequest(const String &filename, const String &submitvalue) {
 
   // track "form appweb_wifisetup" qui retoune SSID PASS et HOSTNAME eq deviceName
-  if (&submitvalue && submitvalue.equals(F("appweb_tryConfig")) ) {
+  // if (&submitvalue && submitvalue.equals(F("appweb_wifisetup")) ) {
+  if ( AppWebPtr->page_id.equals(F("PAGEID _TRYCONFIG")) ) {
     tryConfigWifisetup();
     return;
   }
@@ -125,7 +130,7 @@ char LOCHex2Char( byte aByte) {
 }
 //// looking for requested file into local web pages
 void HTTP_HandleRequests() {
-
+  AppWebPtr->page_id = "";
   Serial.print(F("WEB receved a "));
   Serial.print( String((Server.method() == HTTP_GET) ? "GET '" : "POST '" ));
   Serial.print(Server.uri());
@@ -421,11 +426,11 @@ void HTTP_HandleRequests() {
           translateKey(aStr);
 
           // Copie de la suite de la chaine ailleur
-          
+
           //static  char bBuffer[500];   //  todo   deal correctly with over 500 char lines  // static dont overload heap
           //strncpy(bBuffer, stopPtr, 500);
           String bBuffer = stopPtr;  // copie du reste de la chaine
-          
+
           // Ajout de la chaine de remplacement
           strncpy(currentPtr, aStr.c_str(), 100);
           currentPtr += aStr.length();
