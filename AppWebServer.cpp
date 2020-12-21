@@ -93,7 +93,12 @@ void AppWeb::begin() {
   }
   // Recuperation du fichier de config
   TWConfig.read();
-
+  _defaultWebFolder = TWConfig.defaultWebFolder;
+  if (_defaultWebFolder.length() == 0) _defaultWebFolder = F("/web");
+  _captiveWebFolder = TWConfig.captiveWebFolder;
+  if (_captiveWebFolder.length() == 0) _captiveWebFolder = F("/web/wifisetup");  // todo: should be "/captive" ??
+  _captiveAP = true;  // 
+  //_timerCaptiveAP = 0;
   Serial.setDebugOutput(true);
 
 
@@ -138,9 +143,7 @@ void AppWeb::begin() {
   Serial.println(WiFi.getMode());
   //delay(1000); // Without delay I've seen the IP address blank
   _deviceName = WiFi.softAPSSID();              //device name from WiFi
-  //if no SSID name I suppose it is a first boot so
-  //   set hostname and softap ssid to default
-  //   TODO : better detect empty config
+  
   if ( TWConfig.deviceName != _deviceName) {
     D_print(F("SW: need to init WiFi same as config   !!!!! "));
     D_print(TWConfig.deviceName);
@@ -171,19 +174,19 @@ void AppWeb::begin() {
   D_print(F("TW: AP IP address: "));
   D_println(myIP);
 
-  if (WiFi.getMode() != WIFI_OFF ) {
-    bool result = MDNS.begin(_deviceName);
-    Serial.print(F("TWS: MS DNS ON : "));
-    Serial.print(_deviceName);
-    Serial.print(F(" r="));
-    Serial.println(result);
-  }
+//  if (WiFi.getMode() != WIFI_OFF ) {
+//    bool result = MDNS.begin(_deviceName);
+//    Serial.print(F("TWS: MS DNS ON : "));
+//    Serial.print(_deviceName);
+//    Serial.print(F(" r="));
+//    Serial.println(result);
+//  }
 
   return ;
 }
 
 // set device name
-// Check for valid name otherwhise EFAULT_DEVICENAME "*" is used
+// Check for valid name otherwhise DEFAULT_DEVICENAME "*" is used
 // if device name terminate with *  we add some mac adresse number
 //   usefull if you setup different device at the same place
 // device name is used as APname and as DNSname
@@ -275,7 +278,7 @@ void AppWeb::handleEvent() {
     Serial.println(status);
     oldStatus = status;
     if (status == WL_CONNECTED) {
-      TWS::localIp = WiFi.localIP().toString();
+      TWS::localIp = WiFi.localIP().toString();  // recuperation de l'ip locale
     }
 
 

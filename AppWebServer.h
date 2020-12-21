@@ -101,8 +101,11 @@ class AppWeb {
     //    String currentUri();                            // return the last requested URI (actual page in calllback)
     //    // var
     byte debugLevel = 3;  // 0 = none / 1 = minimal / 2 = variable request / 3 = wifi debug (must be set before begin)
-    //
-    String        _deviceName;
+    // TODO: a passer en private
+    String  _deviceName;
+    String  _defaultWebFolder;
+    String  _captiveWebFolder;
+    bool    _captiveAP = false;
     String  page_id;
   private:
     //int16_t _timerCaptiveAP = 0;  // timer limitation du mode AP en seconde

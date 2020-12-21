@@ -57,6 +57,17 @@ Also see [examples](https://github.com/net234/AppWebServer/tree/main/exemple).
 
 ## Documentation
 
+## first initialisation
+At very first boot the device name will be set to 'APPWEB_XXXX'  xxxx will be different number for each device.
+The device will act as a WiFi Access Point (AP Mode) named same as as the device name.
+When a user connect on this WiFI (APPWEB_XXXX) the device will open the "wifisetup" web to allow wifi setup.
+the user will chose the local WiFi to use with the password and eventualy a specific device for the usage.
+If the device connect succefully to the wifi all the setting will be recorded 
+the device will connect on the wifi and can be acceded on any web browser with the name "devicename.local"
+
+
+
+
 #### Password protect the configuration Access Point
 todo
 ```

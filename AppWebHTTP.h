@@ -140,11 +140,11 @@ void HTTP_HandleRequests() {
   Serial.println();
 
   // find if client call STATION or AP
-  String fileName = TWConfig.webFolder; //default /web;
+  String fileName = AppWebPtr->_defaultWebFolder; //default /web;
   if ( Server.client().localIP() == WiFi.localIP() ) {
     // specific for station nothing special to do
     D_println(F("WEB: answer as STATION"));
-    
+
   } else if ( Server.client().localIP() != WiFi.softAPIP() ) {
     // specific for unknow client -> abort request
     D1_println(F("WEB: unknown client IP !!!!"));
@@ -152,11 +152,13 @@ void HTTP_HandleRequests() {
   } else {
     // specific for AP client -> check specific config for filename and handle Captive mode
     D_println(F("WEB: answer as AP"));
-    if (TWConfig.APwebFolder.length() > 0) fileName = TWConfig.APwebFolder; //default /web/wifisetup
-    //  // interception en mode captive
-    D_print(F("WEB: hostHeader : "));
-    D_println(Server.hostHeader());
-    //Server.uri().endsWith("redirect") ||
+    if (AppWebPtr->_captiveAP ) {
+      fileName = AppWebPtr->_captiveWebFolder; //default /web/wifisetup
+
+      //  // interception en mode captive
+      D_print(F("WEB: hostHeader : "));
+      D_println(Server.hostHeader());
+      //Server.uri().endsWith("redirect") ||
       // in captive mode all requests to html or txt are re routed to "http://localip()" with a 302 reply
       if ( !( Server.hostHeader().startsWith( WiFi.softAPIP().toString() ) )  && Server.uri().endsWith(".html") ||  Server.uri().endsWith(".txt") ) {
         D_println(F("WEB: Request redirected to captive portal"));
@@ -170,8 +172,8 @@ void HTTP_HandleRequests() {
         D_println(F("WEB: --- GET closed with a 302"));
         return;
       }
-    //
-      // Gestion des Helth Check
+      //
+      // Gestion des Health Check
       if (Server.uri().endsWith("generate_204") ) {
         Serial.println(F("Generate204"));
         Server.setContentLength(0);
@@ -180,17 +182,19 @@ void HTTP_HandleRequests() {
         D_println(F("WEB: --- GET closed with a 204"));
         return;
       }
-    //
-    //  // rearm timeout for captive portal
-    //  // to hide captive mode stop DNS captive if a request is good (hostheader=localip)
-    //  if (softAP) {
-    //    timerCaptivePortal = millis();
-    //    if (captiveDNS) captiveDNSStop();
-    //  }
-    //
-    //
+      //
+      //  // rearm timeout for captive portal
+      //  // to hide captive mode stop DNS captive if a request is good (hostheader=localip)
+      //  if (softAP) {
+      //    timerCaptivePortal = millis();
+      //    if (captiveDNS) captiveDNSStop();
+      //  }
+      //
+      //
+    }
   }
 
+  if ( fileName.length() == 0 ) fileName = '/';
   fileName += Server.uri();
   // todo   protection against ../
 
@@ -454,13 +458,13 @@ void HTTP_HandleRequests() {
   message += (Server.method() == HTTP_GET) ? "GET" : "POST";
   message += F("\nArguments: ");
   message += Server.args(); // last is plain = all arg
-  message += F("\n<br>");
   Serial.println(message);
+  message += F("\n<br>");
   for (uint8_t i = 0; i < Server.args(); i++) {
     message += " " + Server.argName(i) + ": " + Server.arg(i) + "\n<br>";
   }
   message += "<H2><a href=\"/\">go home</a></H2><br>";
   Server.send(404, "text/html", message);
   Server.client().stop();
-  
+
 }

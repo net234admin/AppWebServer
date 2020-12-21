@@ -32,22 +32,22 @@
 #include "AppWebConfig.h"
 
 //String in FLASH (use FPSTR to get them)
- static const char F_APwebFolder[] PROGMEM = "APwebFolder";
+ static const char F_captiveWebFolder[] PROGMEM = "captiveWebFolder";
 
 bool FileConfig::read() {
+  changed=false;
+  initInfo="";
   deviceName="";              //invalid value are replacet by APPWEB_XXYY
-  webFolder = F("/web");      //default value
-  APwebFolder = F("/web/wifisetup");      //default value
+  defaultWebFolder = ""; //F("/web");      //default value
+  captiveWebFolder = ""; //F("/web/wifisetup");      //default value
+  bootForceAP = 0;
   D_println(F("TW get config"));
   File aFile = TWFS.open(F("/AppWebServer.conf"), "r");  
-  if (aFile) {
-    D_println(F("TW: AppWebServer.conf present"));
-  } else {
+  if (!aFile) {
+    D_println(F("TW: AppWebServer.conf not found"));
     aFile = TWFS.open(F("/AppWebServer.ini"), "r");
-    if (aFile) {
-      D_println(F("TW: AppWebServer.ini present"));
-    }  else {
-      D_println(F("TW: no config found !!!"));
+    if (!aFile) {
+       D1_println(F("TW: AppWebServer.ini not found !!!"));
       return (false);
     }
   }
@@ -60,9 +60,9 @@ bool FileConfig::read() {
     if ( aString.startsWith(F("#")) ) {
       D_print(F("TW: '#")); D_print(aString); D_println("'");
       
-   } else if ( aString.startsWith(FPSTR(F_APwebFolder)) ) {
-       APwebFolder = getParam(aString);
-      D_print(F("TW: APwebFolder ='")); D_print(APwebFolder); D_println("'");
+   } else if ( aString.startsWith(FPSTR(F_captiveWebFolder)) ) {
+       captiveWebFolder = getParam(aString);
+      D_print(F("TW: captiveWebFolder ='")); D_print(captiveWebFolder); D_println("'");
       
   } else if ( aString.startsWith(F("initInfo")) ) {
       initInfo = getParam(aString);
@@ -70,9 +70,9 @@ bool FileConfig::read() {
     } else if ( aString.startsWith(F("deviceName")) ) {
       deviceName = getParam(aString);
       D_print(F("TW: deviceName ='")); D_print(deviceName); D_println("'");
-    } else if ( aString.startsWith(F("webFolder")) ) {
-      webFolder = getParam(aString);
-      D_print(F("TW: webFolder ='")); D_print(webFolder); D_println("'");
+    } else if ( aString.startsWith(F("defaultWebFolder")) ) {
+      defaultWebFolder = getParam(aString);
+      D_print(F("TW: defaultWebFolder ='")); D_print(defaultWebFolder); D_println("'");
     } else if ( aString.startsWith(F("bootForceAP")) ) {
       bootForceAP = getParam(aString).toInt(); 
       D_print(F("TW: bootForceAP ='")); D_print(bootForceAP); D_println("'");
@@ -100,15 +100,15 @@ bool FileConfig::save() {
     D_println(deviceName);
  }
  
-  if (APwebFolder.length() > 0) {
-    aFile.print(FPSTR(F_APwebFolder));
+  if (captiveWebFolder.length() > 0) {
+    aFile.print(FPSTR(F_captiveWebFolder));
     aFile.print('=');
-    aFile.println(APwebFolder);
+    aFile.println(captiveWebFolder);
   }
 
-  if (webFolder.length() > 0) {
-    aFile.print("webFolder=");
-    aFile.println(webFolder);
+  if (defaultWebFolder.length() > 0) {
+    aFile.print("defaultWebFolder=");
+    aFile.println(defaultWebFolder);
   }
  if (initInfo.length() > 0) {
     aFile.print("initInfo=");

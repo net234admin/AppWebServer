@@ -48,8 +48,8 @@ class FileConfig {
     bool changed = false;   //need to be saved
     String initInfo;        //version of ini file
     String deviceName;      //saved device name
-    String webFolder;       //default web foder path   
-    String APwebFolder;      //webfolder path for AP 
+    String defaultWebFolder;       //default web folder path   
+    String captiveWebFolder;      //webfolder path for CativeAP
     int bootForceAP = 0;    //if AP mode is off force temporary AP mode at boot  (mostly for debug) 
   private:
     String getParam(const String &astring);
