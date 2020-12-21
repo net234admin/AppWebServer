@@ -105,6 +105,7 @@ class AppWeb {
     String        _deviceName;
     String  page_id;
   private:
+    //int16_t _timerCaptiveAP = 0;  // timer limitation du mode AP en seconde
     //    String  _redirectUri;   //  request will be redirected to this URI if set after onRequest call back
 
 

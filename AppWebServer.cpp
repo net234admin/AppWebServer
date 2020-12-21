@@ -75,7 +75,7 @@ void AppWeb::end() {
   //  WiFi.mode(WIFI_OFF);
   //  //  softAP = false;
   //  delay(10);
-  //  WiFi.forceSleepBegin();
+  //  WiFi.SleepBegin();
   //  delay(10);
   Server.close();
   ////  delay(10);
@@ -123,10 +123,10 @@ void AppWeb::begin() {
   }
 
   if ( TWConfig.bootForceAP > 0 && !(WiFi.getMode() & WIFI_AP) ) {
-    D_println(F("TWS: Force mode AP !!!"));
+    D_println(F("TWS: Force mode Captive AP !!!"));
     
     WiFi.enableAP(true);   // wifi est non persistant 
-    //timerLimitAP=TWConfig.bootForceAP;
+    timerCaptivePortal=TWConfig.bootForceAP*60;
   }
   WiFi.persistent(true);
 
@@ -228,7 +228,6 @@ void AppWeb::handleEvent() {
     MDNS.end();  // will be restarted if needed
 
     if (_WiFiMode & WIFI_AP) {
-      captiveDNSStart();
 
 
       if (WiFi.softAPIP() != IPAddress(10, 10, 10, 10) ) {
@@ -246,6 +245,7 @@ void AppWeb::handleEvent() {
         D_println(WiFi.softAPIP());
 
       }
+      captiveDNSStart();
     }
 
     if (_WiFiMode != WIFI_OFF) {
