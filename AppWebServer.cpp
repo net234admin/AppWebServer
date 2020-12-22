@@ -92,6 +92,9 @@ void AppWeb::begin() {
   } else {
     D_println(F("TW: FS Ok"));
   }
+  // init random seed
+  randomSeed(micros());
+  createRandom();        //fill up first _random;
   // Recuperation du fichier de config
   TWConfig.read();
   _defaultWebFolder = TWConfig.defaultWebFolder;
@@ -316,4 +319,9 @@ void AppWeb::setCallBack_OnRefreshItem(bool (*onrefreshitem)(const String & keyn
 
 bool AppWeb::razConfig() {                             // efface la config enregistree
   return (TWConfig.erase());
+}
+
+String AppWeb::createRandom() {
+  _random = random(1000000,9999999);
+  return (_random);
 }

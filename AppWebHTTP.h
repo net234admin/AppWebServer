@@ -30,6 +30,10 @@ void (*onTranslateKeyPtr)(String &key) = NULL;
 void translateKey(String &key) {
   if ( key.equals(F("_CHIP_ID")) ) {
     key = ESP.getChipId();
+  } else if ( key.equals(F("_NEW_RANDOM")) ) {
+    key = AppWebPtr->createRandom();
+  } else if ( key.equals(F("_RANDOM")) ) {
+    key = AppWebPtr->_random;
   } else if ( key.equals(F("_FLASH_CHIP_ID")) ) {
     key = ESP.getFlashChipId();
   } else if ( key.equals(F("_IDE_FLASH_SIZE")) ) {
@@ -89,7 +93,9 @@ void (*onRequestPtr)(const String &filename, const String &submitvalue) = NULL;
 void onRequest(const String &filename, const String &submitvalue) {
 
   // track "form appweb_wifisetup" qui retoune SSID PASS et HOSTNAME eq deviceName
-  if (&submitvalue && submitvalue.equals(F("appweb_wifisetup")) ) {
+  String aString = F("appweb_wifisetup_");
+  aString += AppWebPtr->_random;
+  if (&submitvalue && submitvalue.equals(aString) ) {
     checkSubmitappwebWifisetup();
     return;
   }
@@ -174,14 +180,14 @@ void HTTP_HandleRequests() {
         //Server.client().stop();
         D_println(F("WEB: --- GET closed with a 302"));
         return;
-      }
+      } // if captive page
       //
       // Gestion des Health Check
       if (Server.uri().endsWith("generate_204") ) {
         Serial.println(F("Generate204"));
         Server.setContentLength(0);
         Server.send ( 204 );
-        Server.client().stop();
+        // Server.client().stop();
         D_println(F("WEB: --- GET closed with a 204"));
         return;
       }

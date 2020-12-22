@@ -36,7 +36,7 @@
 
 
 #define LED_LIFE      LED_BUILTIN
-#define APP_VERSION   "AppWeb Validate V1.0.3"
+#define APP_VERSION   "AppWeb Validate V1.0.4"
 
 #define LED_ON        LOW
 //Objet serveur WEB

@@ -83,7 +83,7 @@ class AppWeb {
 
     //    TW_WiFiStatus_t  getWiFiStatus();                  // Wifi Status is scanned during handleClient()
     void setDeviceName(const String devicename);
-
+    String createRandom();                                   // create a new random string in _random
     //void setSTAWiFi(String ssid, String ssidpassword); // setup AP server wifi credential
     //    void configureWiFi(const bool active = false);  // active the AP mode to request wifi credential from the user
     // //   void softAPconnect(const bool active,const bool persistent = false,const char* = NULL);
@@ -106,6 +106,7 @@ class AppWeb {
     String  _defaultWebFolder;
     String  _captiveWebFolder;
     bool    _captiveAP = false;
+    String  _random;
     String  page_id;
   private:
     //int16_t _timerCaptiveAP = 0;  // timer limitation du mode AP en seconde
