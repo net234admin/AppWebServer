@@ -44,10 +44,11 @@ namespace TWS {
 // Out of instance variables
 String  redirectUri;        // uri to redirect after an onSubmit (used by AppWebHttp)
 String  localIp;
-
+String  TryStatus;
 // Out of instance function
-#include "AppWebHTTP.h"    //out of instance functions
 #include "AppWebCaptive.h"    //out of instance functions
+#include "AppWebHTTP.h"    //out of instance functions
+
 
 }
 
@@ -226,10 +227,10 @@ void AppWeb::handleEvent() {
     D_println(WiFi.SSID());
     D_print(F("SW: Station IP "));
     D_println(WiFi.localIP());
-
+    wifi_softap_dhcps_stop();
     captiveDNSStop();
     MDNS.end();  // will be restarted if needed
-
+    delay(10);
     if (_WiFiMode & WIFI_AP) {
 
 
@@ -248,10 +249,15 @@ void AppWeb::handleEvent() {
         D_println(WiFi.softAPIP());
 
       }
+      D_println(F("SW: Captive start"));
+      
       captiveDNSStart();
+      wifi_softap_dhcps_start();
     }
-
-    if (_WiFiMode != WIFI_OFF) {
+//  ETS_UART_INTR_DISABLE();
+  //  WiFi.disconnect(); //  this alone is not enough to stop the autoconnecter
+  //  ETS_UART_INTR_ENABLE();
+    if (_WiFiMode & WIFI_STA) {
       //delay(100);
       bool result = MDNS.begin(_deviceName);
       //MDNS.addService("http", "tcp", 80);
@@ -274,6 +280,7 @@ void AppWeb::handleEvent() {
   //    4 : WL_CONNECT_FAILED if password is incorrect
   //    6 : WL_DISCONNECTED if module is not configured in station mode
   if (status != oldStatus) {
+    TryStatus = status;
     Serial.print("Wifi Status : ");
     Serial.println(status);
     oldStatus = status;

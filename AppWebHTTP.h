@@ -42,6 +42,10 @@ void translateKey(String &key) {
     key = WiFi.softAPmacAddress();
   } else if ( key.equals(F("_STATION_IP")) ) {
     key = TWS::localIp;
+  } else if ( key.equals(F("_TRY_SSID")) ) {
+    key = TWS::TrySSID;
+  } else if ( key.equals(F("_TRY_STATUS")) ) {
+    key = TWS::TryStatus;
   } else if ( key.equals(F("_HOSTNAME")) ) {
     key =  TWConfig.deviceName;
   } else if ( key.equals(F("_STATION_MAC")) ) {
@@ -160,15 +164,14 @@ void HTTP_HandleRequests() {
       D_println(Server.hostHeader());
       //Server.uri().endsWith("redirect") ||
       // in captive mode all requests to html or txt are re routed to "http://localip()" with a 302 reply
-      if ( !( Server.hostHeader().startsWith( WiFi.softAPIP().toString() ) )  && Server.uri().endsWith(".html") ||  Server.uri().endsWith(".txt") ) {
+      if ( !( Server.hostHeader().startsWith( WiFi.softAPIP().toString() ) )  && Server.uri().endsWith(".html") ||  Server.uri().endsWith(".txt") || Server.uri().endsWith("redirect") ) {
         D_println(F("WEB: Request redirected to captive portal"));
         String aStr = F("http://");
         aStr += Server.client().localIP().toString();
-        //   aStr += F("/APSetup/WifiManagement.html");
+        aStr += F("/index.html");
         Server.sendHeader("Location", aStr, true);
-        //    Serveur.sendHeader("Location", String("http://") + Serveur.client().localIP().toString() + "/APSetup/WifiManagement.html", true);
         Server.send ( 302, "text/plain", "");
-        Server.client().stop();
+        //Server.client().stop();
         D_println(F("WEB: --- GET closed with a 302"));
         return;
       }
