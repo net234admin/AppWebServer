@@ -47,7 +47,7 @@ void translateKey(String &key) {
   } else if ( key.equals(F("_STATION_IP")) ) {
     key = TWS::localIp;
   } else if ( key.equals(F("_TRY_SSID")) ) {
-    key = TWS::TrySSID;
+    if (trySetupPtr) key = trySetupPtr->SSID;
   } else if ( key.equals(F("_TRY_STATUS")) ) {
     key = TWS::TryStatus;
   } else if ( key.equals(F("_HOSTNAME")) ) {
@@ -72,19 +72,6 @@ void translateKey(String &key) {
 
 
 
-// onRequest callback
-//pointer du gestionaire de request
-void (*onEndOfRequestPtr)(const String &filename, const String &submitvalue) = NULL;
-
-void onEndOfRequest(const String &filename, const String &submitvalue) {
-
-  // track "form appweb_wifisetup" qui retoune SSID PASS et HOSTNAME eq deviceName
-  if (&submitvalue && submitvalue.equals(F("appweb_tryConfig")) ) {
-    tryConfigWifisetup();
-    return;
-  }
-  if (onEndOfRequestPtr) (*onEndOfRequestPtr)(filename, submitvalue);
-}
 
 // onRequest callback
 //pointer du gestionaire de request
@@ -96,12 +83,23 @@ void onRequest(const String &filename, const String &submitvalue) {
   String aString = F("appweb_wifisetup_");
   aString += AppWebPtr->_random;
   if (&submitvalue && submitvalue.equals(aString) ) {
-    checkSubmitappwebWifisetup();
+    do_appweb_wifisetup();
     return;
   }
   if (onRequestPtr) (*onRequestPtr)(filename, submitvalue);
 }
 
+// onEndOfRequest callback
+//pointer du gestionaire de request
+void (*onEndOfRequestPtr)(const String &filename, const String &submitvalue) = NULL;
+
+void onEndOfRequest(const String &filename, const String &submitvalue) {
+  
+  // if a coonfig is waiting try it
+  if (tryConfigPtr) tryConfigWifisetup();
+
+  if (onEndOfRequestPtr) (*onEndOfRequestPtr)(filename, submitvalue);
+}
 
 
 

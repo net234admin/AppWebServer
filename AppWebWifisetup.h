@@ -84,38 +84,48 @@ bool repeatLineScanNetwork(const int num) {
 }
 
 //TODO  make a pointed struc to avoid memory lost
-String TrySSID;
-String TryPASS;
-String TryDeviceName;
+struct trySetup_t {
+  String SSID;
+  String PASS;
+  String DeviceName;
+};
 
-/////////////============submit appweb_wifisetup ==============////////////////////
+trySetup_t* trySetupPtr = nullptr; // a pointer to tryconf
+
+/////////////============submit appweb_wifisetup (page configure.html)==============////////////////////
 // gestion du submit appweb_wifisetup
-void checkSubmitappwebWifisetup() {
-
-  // TODO : add a check for pagename
-  // Check SSID validity
-  String aString = Server.arg(F("SSID"));
-  aString.trim();
-  if (aString.length() <= 2 && aString.length() > 30) {
+void do_appweb_wifisetup() {
+  // check if form if valid
+  String aSSID = Server.arg(F("SSID"));
+  aSSID.trim();
+  if (aSSID.length() <= 2 && aSSID.length() > 30) {
     return;
   }
-  TrySSID = aString;
 
-  aString = Server.arg(F("HOSTNAME"));
-  aString.trim();
-  if (aString.length() <= 2 && aString.length() > 30) {
+  String aHostname = Server.arg(F("HOSTNAME"));
+  aHostname.trim();
+  if (aHostname.length() <= 2 && aHostname.length() > 30) {
     return;
   }
-  TryDeviceName = aString;
+  // form is valid
+  // we redirect to test.html page
+  // we create a trySetup object that will be tryed on the end of display of the redirected page
 
-  TryPASS = Server.arg(F("PASS"));
-  TryPASS.trim();
- 
-  TWS::redirectUri = F("wait.html");
+  if (!trySetupPtr)  trySetupPtr = new trySetup_t;
+
+  trySetupPtr->DeviceName = aHostname;
+  trySetupPtr->SSID = aSSID;
+  trySetupPtr->PASS = Server.arg(F("PASS"));
+  trySetupPtr->PASS.trim();
+
+  TWS::redirectUri = F("test.html");
 }
 
-//////////////////
+////////////////// try the config for wifi waiting //////////
 void tryConfigWifisetup() {
+  if (!tryConfiwPtr) return;
+
+  
   String aString;
   aString.trim();
   Serial.print(F("Got Hostname="));
@@ -136,13 +146,13 @@ void tryConfigWifisetup() {
   }
   delay(100);
   // TODO : check wifi before validate
-//  Serial.print(F("WS: Set STATION mode with '"));
-//  Serial.print(wifiSSD);
-//  Serial.print(F("' and '"));
-//  Serial.print(wifiPASS);
-//  Serial.println(F("'"));
-//  WiFi.begin(wifiSSD, wifiPASS);
-//  Serial.print(F("request connectWiFi="));
-//  Serial.println(wifiSSD);
+  //  Serial.print(F("WS: Set STATION mode with '"));
+  //  Serial.print(wifiSSD);
+  //  Serial.print(F("' and '"));
+  //  Serial.print(wifiPASS);
+  //  Serial.println(F("'"));
+  //  WiFi.begin(wifiSSD, wifiPASS);
+  //  Serial.print(F("request connectWiFi="));
+  //  Serial.println(wifiSSD);
 
 }

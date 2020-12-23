@@ -73,12 +73,47 @@ todo
 ```
 
 #### Callbacks
+For each http request there is differents callback to handle the data displayed
+## onrequest
+this callback is used to protect some page or to prepare specific data
+onRequest(filename,*submitptr) is called for each http request before any data is send back to end user
+filename is the full pathname of the requested file   submitprt is the value of the 'submit' argument
+if the callback job need to redirect the request to another webpage just fill the redirectUri with the requested Uri of the page.
+  the redirect location will be send to the client
+
+## translateKey  (only for .html file)
+each text enclosed between [# akeyword #] will trigger a translateKey(aKey) aKey will contain the enclosed text (akeyword)
+the whole sequence "[# akeyword #]" will be replaced with the value set to aKey by the call back routine 
+
+
+## onRepeatLine  (only for .html file)
+this callback is used to display table or any repetitive strucure
+html exemple :
+<tr><td>user</td><td>age</td><td>adresse</td></tr>
+[#REPEATLINE mytable#]<tr><td>[#username#]</td><td>[#userage#]</td><td>[#useradresse#]</td></tr>
+
+onRepeatLine(aStrKey, repeatNumber) is called if a line of the requested file *start* with '[#REPEATLINE mytable#]'
+aStrkey is the full text after REAPEATLINE (mytable)
+repeatNumber is 0 on first call
+if the call back answer true, the rest of the line after [#REPEATLINE mytable#] will be displayed and another OnRepeatLine will be called until the job answer false.
+
+
+
+
+## onEndOfRequest
+onEndOfRequest(fileName, *submitPtr);  is called after the web page is completly send to the end user
+this allow to start specific job only after the page is diplayed to the end user
+
+
+
+
+
 ##### Enter Config mode
 todo
 
 ##### Save settings
 todo
-
+ 
 #### Configuration Portal Timeout
 If you need to set a timeout so the ESP doesn't hang waiting to be configured, for instance after a power failure, you can add
 ```cpp
