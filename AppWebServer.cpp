@@ -101,7 +101,7 @@ void AppWeb::begin() {
   if (_defaultWebFolder.length() == 0) _defaultWebFolder = F("/web");
   _captiveWebFolder = TWConfig.captiveWebFolder;
   if (_captiveWebFolder.length() == 0) _captiveWebFolder = F("/web/wifisetup");  // todo: should be "/captive" ??
-  _captiveAP = true;  // 
+  _captiveAP = true;  //
   //_timerCaptiveAP = 0;
   Serial.setDebugOutput(true);
 
@@ -133,9 +133,9 @@ void AppWeb::begin() {
 
   if ( TWConfig.bootForceAP > 0 && !(WiFi.getMode() & WIFI_AP) ) {
     D_println(F("TWS: Force mode Captive AP !!!"));
-    
-    WiFi.enableAP(true);   // wifi est non persistant 
-    timerCaptivePortal=TWConfig.bootForceAP*60;
+
+    WiFi.enableAP(true);   // wifi est non persistant
+    timerCaptivePortal = TWConfig.bootForceAP * 60;
   }
   WiFi.persistent(true);
 
@@ -147,7 +147,7 @@ void AppWeb::begin() {
   Serial.println(WiFi.getMode());
   //delay(1000); // Without delay I've seen the IP address blank
   _deviceName = WiFi.softAPSSID();              //device name from WiFi
-  
+
   if ( TWConfig.deviceName != _deviceName) {
     D_print(F("SW: need to init WiFi same as config   !!!!! "));
     D_print(TWConfig.deviceName);
@@ -178,13 +178,13 @@ void AppWeb::begin() {
   D_print(F("TW: AP IP address: "));
   D_println(myIP);
 
-//  if (WiFi.getMode() != WIFI_OFF ) {
-//    bool result = MDNS.begin(_deviceName);
-//    Serial.print(F("TWS: MS DNS ON : "));
-//    Serial.print(_deviceName);
-//    Serial.print(F(" r="));
-//    Serial.println(result);
-//  }
+  //  if (WiFi.getMode() != WIFI_OFF ) {
+  //    bool result = MDNS.begin(_deviceName);
+  //    Serial.print(F("TWS: MS DNS ON : "));
+  //    Serial.print(_deviceName);
+  //    Serial.print(F(" r="));
+  //    Serial.println(result);
+  //  }
 
   return ;
 }
@@ -215,10 +215,10 @@ void AppWeb::setDeviceName(const String devicename) {
 void AppWeb::handleEvent() {
   // Check if mode changed
   WiFiMode_t wifimode = WiFi.getMode();
-  if ( _WiFiMode != wifimode) {
+  if ( WiFi.getPersistent() && _WiFiMode != wifimode) {
     _WiFiMode = wifimode;
     // grab WiFi actual mode
-    D_print(F("SW: -- Wifi mode change to "));
+    D_print(F("SW: -------------> Wifi mode change to "));
     D_println(_WiFiMode);
     D_println(F("SW: Read wifi current mode and config "));
     D_print(F("SW: SoftAP SSID "));
@@ -228,6 +228,10 @@ void AppWeb::handleEvent() {
 
     D_print(F("SW: Station SSID "));
     D_println(WiFi.SSID());
+
+    D_print(F("SW: Station password "));
+    D_println(WiFi.psk());
+
     D_print(F("SW: Station IP "));
     D_println(WiFi.localIP());
     wifi_softap_dhcps_stop();
@@ -253,13 +257,13 @@ void AppWeb::handleEvent() {
 
       }
       D_println(F("SW: Captive start"));
-      
+
       captiveDNSStart();
       wifi_softap_dhcps_start();
     }
-//  ETS_UART_INTR_DISABLE();
-  //  WiFi.disconnect(); //  this alone is not enough to stop the autoconnecter
-  //  ETS_UART_INTR_ENABLE();
+    //  ETS_UART_INTR_DISABLE();
+    //  WiFi.disconnect(); //  this alone is not enough to stop the autoconnecter
+    //  ETS_UART_INTR_ENABLE();
     if (_WiFiMode & WIFI_STA) {
       //delay(100);
       bool result = MDNS.begin(_deviceName);
@@ -284,12 +288,30 @@ void AppWeb::handleEvent() {
   //    6 : WL_DISCONNECTED if module is not configured in station mode
   if (status != oldStatus) {
     TryStatus = status;
-    Serial.print("Wifi Status : ");
+    Serial.print("----->  Wifi Status : ");
     Serial.println(status);
     oldStatus = status;
     if (status == WL_CONNECTED) {
       TWS::localIp = WiFi.localIP().toString();  // recuperation de l'ip locale
+      if (!WiFi.getPersistent()) {
+        WiFi.enableSTA(false);
+        WiFi.persistent(true);
+        if  (trySetupPtr) {
+          WiFi.begin(trySetupPtr->SSID, trySetupPtr->PASS);
+          delete trySetupPtr;
+          trySetupPtr = nullptr;
+        }
+      }
     }
+    if (trySetupPtr && status == WL_CONNECT_FAILED ) {
+      // bad password
+      D_println(F("Bad Password"));
+      WiFi.enableSTA(false);
+      delete trySetupPtr;
+      trySetupPtr = nullptr;
+
+    }
+
 
 
   }
@@ -322,6 +344,6 @@ bool AppWeb::razConfig() {                             // efface la config enreg
 }
 
 String AppWeb::createRandom() {
-  _random = random(1000000,9999999);
+  _random = random(1000000, 9999999);
   return (_random);
 }

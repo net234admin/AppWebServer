@@ -96,7 +96,7 @@ void (*onEndOfRequestPtr)(const String &filename, const String &submitvalue) = N
 void onEndOfRequest(const String &filename, const String &submitvalue) {
   
   // if a coonfig is waiting try it
-  if (tryConfigPtr) tryConfigWifisetup();
+ // if (tryConfigPtr) tryConfigWifisetup();
 
   if (onEndOfRequestPtr) (*onEndOfRequestPtr)(filename, submitvalue);
 }

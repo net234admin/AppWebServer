@@ -160,7 +160,9 @@ void loop() {
     }
     if (track) {
       Serial.print("loop = ");
-      Serial.println(parsec);
+      Serial.print(parsec);
+      Serial.print(F(" Freemem = "));
+      Serial.println(ESP.getFreeHeap());
 
     }
     parsec = 0;
@@ -295,7 +297,7 @@ void loop() {
         WiFi.mode(WIFI_AP);
         break;
 
-     case '3':
+      case '3':
         Serial.println("setWiFiMode(WiFi_AP)");
         WiFi.mode(WIFI_AP_STA);
         break;

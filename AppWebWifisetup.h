@@ -52,7 +52,10 @@ int compareNetwork (const void * a, const void * b) {
 }
 
 // Fill up network array with current network
+// !! will open station mode
+WiFiMode_t wifiModeBeforeScan;
 void scanNetwork() {
+  wifiModeBeforeScan = WiFi.getMode();
   networkSize = WiFi.scanNetworks();
   if (networkSize > MAXNETWORK) networkSize = MAXNETWORK;
   //Serial.print(F("scanNetworks done"));
@@ -73,14 +76,24 @@ void scanNetwork() {
   }
 }
 
+// reset wifi mode as it was before scan network
+void closeScanNetwork() {
+  WiFi.scanDelete();
+  WiFi.mode(wifiModeBeforeScan);
+}
+
 #define RSSIdbToPercent(x) ( 2 * (WiFi.RSSI(x) + 100) )
 
 //gestion du repeat line specifique "APPWEB_SCANSETWORK"
 bool repeatLineScanNetwork(const int num) {
   if ( !Server.arg(F("appweb")).equals(F("show_wifi")) ) return (false);
   currentLine = num;
+  D_print(F("Scan network Freemem = "));
+  D_println(ESP.getFreeHeap());
   if (currentLine == 0) scanNetwork();
-  return (num < networkSize && RSSIdbToPercent(network[num]) > 25 );
+  bool result = (num < networkSize && RSSIdbToPercent(network[num]) > 25 );
+  if (!result) closeScanNetwork();
+  return (result);
 }
 
 //TODO  make a pointed struc to avoid memory lost
@@ -111,7 +124,10 @@ void do_appweb_wifisetup() {
   // we redirect to test.html page
   // we create a trySetup object that will be tryed on the end of display of the redirected page
 
-  if (!trySetupPtr)  trySetupPtr = new trySetup_t;
+  if (!trySetupPtr)  {
+    D_println(F("New tryseup !!!"));
+    trySetupPtr = new trySetup_t;
+  }
 
   trySetupPtr->DeviceName = aHostname;
   trySetupPtr->SSID = aSSID;
@@ -119,13 +135,29 @@ void do_appweb_wifisetup() {
   trySetupPtr->PASS.trim();
 
   TWS::redirectUri = F("test.html");
+
+  // if no wifi configured : WiFi.SSID() == "" we test this wifi
+  if (WiFi.SSID() == "") {
+    //       //trying to fix connection in progress hanging
+    //    ETS_UART_INTR_DISABLE();
+    //    wifi_station_disconnect();
+    //    ETS_UART_INTR_ENABLE();
+    WiFi.persistent(false);
+    D_print(F("WIFI begin result="));
+    bool result = WiFi.begin(trySetupPtr->SSID, trySetupPtr->PASS);
+    D_print(result);
+    //WiFi.persistent(true);
+  
+
+  }
+
 }
 
 ////////////////// try the config for wifi waiting //////////
 void tryConfigWifisetup() {
-  if (!tryConfiwPtr) return;
+  //  if (!tryConfiwPtr) return;
 
-  
+
   String aString;
   aString.trim();
   Serial.print(F("Got Hostname="));
