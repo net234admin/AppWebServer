@@ -155,7 +155,7 @@ void do_appweb_wifisetup() {
 }
 
 ////////////////// gestion de wifisetup/test.html //////////
-// called at the end of the display page
+// called at the end of display of test page
 void tryConfigWifisetup() {
   D_println(F("tryConfigWifisetup"));
   if (!trySetupPtr || trySetupPtr->isTrying) return;
@@ -168,8 +168,10 @@ void tryConfigWifisetup() {
   //    ETS_UART_INTR_ENABLE();
   WiFi.persistent(false);
   D_print(F("WIFI begin result="));
-  bool result = WiFi.begin(trySetupPtr->SSID, trySetupPtr->PASS);
+  //WiFi.begin(ssid, password, channel, bssid, connect)
+  bool result = WiFi.begin(trySetupPtr->SSID, trySetupPtr->PASS); //,0,NULL,true);
   D_print(result);
+  delay(100);
   //WiFi.persistent(true);
 
 

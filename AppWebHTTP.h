@@ -46,6 +46,8 @@ void translateKey(String &key) {
     key = WiFi.softAPmacAddress();
   } else if ( key.equals(F("_STATION_IP")) ) {
     key = TWS::localIp;
+  } else if ( key.equals(F("_STATION_SSID")) ) {
+    key = WiFi.SSID();
   } else if ( key.equals(F("_TRY_SSID")) ) {
     if (trySetupPtr) key = trySetupPtr->SSID;
   } else if ( key.equals(F("_TRY_STATUS")) ) {

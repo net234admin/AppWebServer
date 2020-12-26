@@ -115,7 +115,7 @@ void AppWeb::begin() {
   Serial.println(WiFi.softAPSSID());
   Serial.print(F("tws: SoftAP IP "));
   Serial.println(WiFi.softAPIP());
-  WiFi.persistent(false);
+
   // controle de la configuration du WiFi et de la configuration demandée
   //reconfig eventuelle de l'ip AP
   //if ( (WiFi.getMode() & WIFI_AP) && (WiFi.softAPIP() != IPAddress(10, 10, 10, 10)) ) {
@@ -133,11 +133,12 @@ void AppWeb::begin() {
 
   if ( TWConfig.bootForceAP > 0 && !(WiFi.getMode() & WIFI_AP) ) {
     D_println(F("TWS: Force mode Captive AP !!!"));
-
+    WiFi.persistent(false);
     WiFi.enableAP(true);   // wifi est non persistant
+    WiFi.persistent(true);
     timerCaptivePortal = TWConfig.bootForceAP * 60;
   }
-  WiFi.persistent(true);
+
 
   Serial.print(F("tws: Station SSID "));
   Serial.println(WiFi.SSID());
@@ -236,7 +237,7 @@ void AppWeb::handleEvent() {
     D_println(WiFi.localIP());
     //wifi_softap_dhcps_stop();
     captiveDNSStop();
-    
+
     //delay(5);    // to allow MSDNS and Captive to stop
 
     if (_WiFiMode & WIFI_AP) {
@@ -295,7 +296,7 @@ void AppWeb::handleEvent() {
       Serial.println(result);
 
 
-      
+
       TWS::localIp = WiFi.localIP().toString();  // recuperation de l'ip locale
       if (trySetupPtr && trySetupPtr->isTrying) {
         //WiFi.enableSTA(false);

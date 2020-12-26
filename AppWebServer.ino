@@ -170,7 +170,7 @@ void loop() {
       Serial.print(F(" Freemem = "));
       Serial.print(ESP.getFreeHeap());
       Serial.print(F(" / "));
-      Serial.println( ESP.getFreeHeap() - refFreeMem);
+      Serial.println( refFreeMem - ESP.getFreeHeap() );
 
     }
     parsec = 0;
@@ -310,7 +310,15 @@ void loop() {
         WiFi.mode(WIFI_AP_STA);
         break;
 
+      case 'S':
+        Serial.println("Start Station");
+        WiFi.begin();
+        break;
 
+      case 'A':
+        Serial.println("Start AP");
+        WiFi.softAP(ServeurWeb._deviceName);
+        break;
 
 
 

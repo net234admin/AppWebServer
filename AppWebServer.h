@@ -102,12 +102,13 @@ class AppWeb {
     //    // var
     byte debugLevel = 3;  // 0 = none / 1 = minimal / 2 = variable request / 3 = wifi debug (must be set before begin)
     // TODO: a passer en private
-    String  _deviceName;
-    String  _defaultWebFolder;
-    String  _captiveWebFolder;
-    bool    _captiveAP = false;
-    String  _random;
-    String  page_id;
+    String  _deviceName;             // AP Name  amd  mDns Name in station mode
+    String  _defaultWebFolder;       // Web base Path for non captive move
+    String  _captiveWebFolder;       // Web base Path for captive mode
+    bool    _standAlone = false;     // device work only on AP mode (in progress)
+    bool    _captiveAP = false;      // used to swith between standard mode
+    String  _random;                 // random number changed on each request without submit
+    // String  page_id;
   private:
     //int16_t _timerCaptiveAP = 0;  // timer limitation du mode AP en seconde
     //    String  _redirectUri;   //  request will be redirected to this URI if set after onRequest call back

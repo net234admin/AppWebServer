@@ -65,6 +65,19 @@ the user will chose the local WiFi to use with the password and eventualy a spec
 If the device connect succefully to the wifi all the setting will be recorded 
 the device will connect on the wifi and can be acceded on any web browser with the name "devicename.local"
 
+## standard mode : local wifi mode
+Wifi is connected to a local wifi and web pages can be reach with http://devicename.local to deal with user application
+Configuration is done  on standalone mode with a captive portal named devicename
+the captive portal is started only on the following 
+at boot time if the local WiFi have never been configured
+2 minutes after lost of connection of the local WiFi 
+if activeCaptiveAP() is called
+
+## standalone mode : AccesPoint mode (work in progress)
+this mode is set with setStandAlone(true) or with  SetStandAlone=true in .ini file
+Acces point is activated with SSID devicename
+web pages can be reach with http://devicename.local do deal with user application
+Configuration can be done within current page on the web site
 
 
 
