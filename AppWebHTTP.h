@@ -96,7 +96,7 @@ void (*onEndOfRequestPtr)(const String &filename, const String &submitvalue) = N
 void onEndOfRequest(const String &filename, const String &submitvalue) {
   
   // if a coonfig is waiting try it
- // if (tryConfigPtr) tryConfigWifisetup();
+ if (trySetupPtr) tryConfigWifisetup();
 
   if (onEndOfRequestPtr) (*onEndOfRequestPtr)(filename, submitvalue);
 }
@@ -164,8 +164,8 @@ void HTTP_HandleRequests() {
       fileName = AppWebPtr->_captiveWebFolder; //default /web/wifisetup
 
       //  // interception en mode captive
-      D_print(F("WEB: hostHeader : "));
-      D_println(Server.hostHeader());
+      //D_print(F("WEB: hostHeader : "));
+      //D_println(Server.hostHeader());
       //Server.uri().endsWith("redirect") ||
       // in captive mode all requests to html or txt are re routed to "http://localip()" with a 302 reply
       if ( !( Server.hostHeader().startsWith( WiFi.softAPIP().toString() ) )  && Server.uri().endsWith(".html") ||  Server.uri().endsWith(".txt") || Server.uri().endsWith("redirect") ) {
@@ -175,7 +175,7 @@ void HTTP_HandleRequests() {
         aStr += F("/index.html");
         Server.sendHeader("Location", aStr, true);
         Server.send ( 302, "text/plain", "");
-        //Server.client().stop();
+        Server.client().stop();
         D_println(F("WEB: --- GET closed with a 302"));
         return;
       } // if captive page
@@ -185,7 +185,7 @@ void HTTP_HandleRequests() {
         Serial.println(F("Generate204"));
         Server.setContentLength(0);
         Server.send ( 204 );
-        // Server.client().stop();
+        Server.client().stop();
         D_println(F("WEB: --- GET closed with a 204"));
         return;
       }

@@ -111,7 +111,7 @@ bool on_RefreshItem(const String & keyname, String & key) {
 
 //
 bool resetRequested = false;
-
+long refFreeMem;
 
 
 
@@ -123,6 +123,8 @@ void setup() {
   // init Serial
   Serial.begin(115200);
   Serial.println(F(APP_VERSION));
+  Serial.print(F(" Freemem Start= "));
+  Serial.println(ESP.getFreeHeap());
 
   Serial.setDebugOutput(true);  // affichage du debug mode pour webserve
 
@@ -133,6 +135,10 @@ void setup() {
   ServeurWeb.setCallBack_OnRefreshItem(&on_RefreshItem);
   //  ServeurWeb.setCallBack_OnRepeatLine(&on_RepeatLine);
   ServeurWeb.begin();
+  refFreeMem = ESP.getFreeHeap();
+  Serial.print(F(" Freemem Ref= "));
+  Serial.println(refFreeMem);
+
 }
 
 
@@ -162,7 +168,9 @@ void loop() {
       Serial.print("loop = ");
       Serial.print(parsec);
       Serial.print(F(" Freemem = "));
-      Serial.println(ESP.getFreeHeap());
+      Serial.print(ESP.getFreeHeap());
+      Serial.print(F(" / "));
+      Serial.println( ESP.getFreeHeap() - refFreeMem);
 
     }
     parsec = 0;

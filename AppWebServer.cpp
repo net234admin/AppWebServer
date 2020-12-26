@@ -215,7 +215,7 @@ void AppWeb::setDeviceName(const String devicename) {
 void AppWeb::handleEvent() {
   // Check if mode changed
   WiFiMode_t wifimode = WiFi.getMode();
-  if ( WiFi.getPersistent() && _WiFiMode != wifimode) {
+  if (  _WiFiMode != wifimode) {
     _WiFiMode = wifimode;
     // grab WiFi actual mode
     D_print(F("SW: -------------> Wifi mode change to "));
@@ -234,10 +234,11 @@ void AppWeb::handleEvent() {
 
     D_print(F("SW: Station IP "));
     D_println(WiFi.localIP());
-    wifi_softap_dhcps_stop();
+    //wifi_softap_dhcps_stop();
     captiveDNSStop();
-    MDNS.end();  // will be restarted if needed
-    delay(10);
+    
+    //delay(5);    // to allow MSDNS and Captive to stop
+
     if (_WiFiMode & WIFI_AP) {
 
 
@@ -256,23 +257,16 @@ void AppWeb::handleEvent() {
         D_println(WiFi.softAPIP());
 
       }
+      //   if (WiFi.getPersistent()) {
       D_println(F("SW: Captive start"));
 
       captiveDNSStart();
-      wifi_softap_dhcps_start();
+
+      //   }
     }
     //  ETS_UART_INTR_DISABLE();
     //  WiFi.disconnect(); //  this alone is not enough to stop the autoconnecter
     //  ETS_UART_INTR_ENABLE();
-    if (_WiFiMode & WIFI_STA) {
-      //delay(100);
-      bool result = MDNS.begin(_deviceName);
-      //MDNS.addService("http", "tcp", 80);
-      Serial.print(F("TWS: MS DNS ON : "));
-      Serial.print(_deviceName);
-      Serial.print(F(" r="));
-      Serial.println(result);
-    }
     D_println(F("SW: -- end Wifi mode change"));
   }
 
@@ -292,20 +286,63 @@ void AppWeb::handleEvent() {
     Serial.println(status);
     oldStatus = status;
     if (status == WL_CONNECTED) {
+
+      bool result = MDNS.begin(_deviceName);
+      //MDNS.addService("http", "tcp", 80);
+      Serial.print(F("STA: MS DNS ON : "));
+      Serial.print(_deviceName);
+      Serial.print(F(" r="));
+      Serial.println(result);
+
+
+      
       TWS::localIp = WiFi.localIP().toString();  // recuperation de l'ip locale
-      if (!WiFi.getPersistent()) {
+      if (trySetupPtr && trySetupPtr->isTrying) {
+        //WiFi.enableSTA(false);
         WiFi.enableSTA(false);
         WiFi.persistent(true);
-        if  (trySetupPtr) {
-          WiFi.begin(trySetupPtr->SSID, trySetupPtr->PASS);
-          delete trySetupPtr;
-          trySetupPtr = nullptr;
+        D_println(F("Saving config to Flash"));
+
+        WiFi.begin(trySetupPtr->SSID, trySetupPtr->PASS);  // save STATION setup in flash
+
+        WiFi.enableAP(false);    // stop AP
+
+        if ( trySetupPtr->deviceName != _deviceName) {
+          D_print(F("SW: need to init WiFi same as new config   !!!!! "));
+          D_print(trySetupPtr->deviceName);
+          D_print(F("!="));
+          D_println(_deviceName);
+          setDeviceName(trySetupPtr->deviceName);  //check devicename validity
+          WiFi.softAP(_deviceName);   // save in flash
+          if (TWConfig.deviceName != WiFi.softAPSSID()) {
+            D_print(F("SW: need to need to rewrite flah config   !!!!! "));
+            D_print(TWConfig.deviceName);
+            D_print(F("!="));
+            D_println(WiFi.softAPSSID());
+            TWConfig.deviceName = WiFi.softAPSSID();  //put back devicename in config if needed
+            TWConfig.changed = true;
+            TWConfig.save();
+          }
+          WiFi.enableAP(false);    // stop AP config is done
         }
+
+        delete trySetupPtr;
+        trySetupPtr = nullptr;
+
       }
+    } else {
+      MDNS.end();  // only if connected
     }
     if (trySetupPtr && status == WL_CONNECT_FAILED ) {
       // bad password
       D_println(F("Bad Password"));
+      D_println(F("Remove try config"));
+      //set back old credential if any
+      if (trySetupPtr->SSID.length() > 0) {
+        WiFi.begin(trySetupPtr->oldSSID, trySetupPtr->oldPASS);  // put back STA old credential if any
+        delay(5);  // need to setup ?
+      }
+      WiFi.persistent(true);
       WiFi.enableSTA(false);
       delete trySetupPtr;
       trySetupPtr = nullptr;

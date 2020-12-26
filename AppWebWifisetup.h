@@ -52,11 +52,13 @@ int compareNetwork (const void * a, const void * b) {
 }
 
 // Fill up network array with current network
-// !! will open station mode
-WiFiMode_t wifiModeBeforeScan;
+// !! will open station mode even if it was closed !!
+// TODO ?  close STA mode if it was open here ?
+//WiFiMode_t wifiModeBeforeScan;
 void scanNetwork() {
-  wifiModeBeforeScan = WiFi.getMode();
-  networkSize = WiFi.scanNetworks();
+  //wifiModeBeforeScan = WiFi.getMode();
+  if (!(WiFi.getMode() & WIFI_STA))  WiFi.persistent(false);  // TODO close sta
+  networkSize = WiFi.scanNetworks();  // WiFi.enableSTA() is called !!
   if (networkSize > MAXNETWORK) networkSize = MAXNETWORK;
   //Serial.print(F("scanNetworks done"));
   if (networkSize == 0) return;
@@ -79,7 +81,12 @@ void scanNetwork() {
 // reset wifi mode as it was before scan network
 void closeScanNetwork() {
   WiFi.scanDelete();
-  WiFi.mode(wifiModeBeforeScan);
+  D_print(F("Scan network END Freemem = "));
+  D_println(ESP.getFreeHeap());
+  //  if (!WiFi.getPersistent()) {
+  //    WiFi.persistent(true);
+  //    WiFi.mode(wifiModeBeforeScan);
+  //  }
 }
 
 #define RSSIdbToPercent(x) ( 2 * (WiFi.RSSI(x) + 100) )
@@ -96,11 +103,17 @@ bool repeatLineScanNetwork(const int num) {
   return (result);
 }
 
+///////// gestion du wifisetup/configure.html //////////////
+
+
 //TODO  make a pointed struc to avoid memory lost
 struct trySetup_t {
   String SSID;
   String PASS;
-  String DeviceName;
+  String oldSSID;
+  String oldPASS;
+  String deviceName;
+  bool isTrying = false;
 };
 
 trySetup_t* trySetupPtr = nullptr; // a pointer to tryconf
@@ -128,55 +141,59 @@ void do_appweb_wifisetup() {
     D_println(F("New tryseup !!!"));
     trySetupPtr = new trySetup_t;
   }
-
-  trySetupPtr->DeviceName = aHostname;
+  trySetupPtr->oldSSID = WiFi.SSID();
+  trySetupPtr->oldPASS = WiFi.psk();
+  trySetupPtr->deviceName = aHostname;
   trySetupPtr->SSID = aSSID;
   trySetupPtr->PASS = Server.arg(F("PASS"));
   trySetupPtr->PASS.trim();
-
+  trySetupPtr->isTrying = false;
   TWS::redirectUri = F("test.html");
 
-  // if no wifi configured : WiFi.SSID() == "" we test this wifi
-  if (WiFi.SSID() == "") {
-    //       //trying to fix connection in progress hanging
-    //    ETS_UART_INTR_DISABLE();
-    //    wifi_station_disconnect();
-    //    ETS_UART_INTR_ENABLE();
-    WiFi.persistent(false);
-    D_print(F("WIFI begin result="));
-    bool result = WiFi.begin(trySetupPtr->SSID, trySetupPtr->PASS);
-    D_print(result);
-    //WiFi.persistent(true);
-  
 
-  }
 
 }
 
-////////////////// try the config for wifi waiting //////////
+////////////////// gestion de wifisetup/test.html //////////
+// called at the end of the display page
 void tryConfigWifisetup() {
-  //  if (!tryConfiwPtr) return;
+  D_println(F("tryConfigWifisetup"));
+  if (!trySetupPtr || trySetupPtr->isTrying) return;
+  trySetupPtr->isTrying = true;
+  // if no wifi configured : WiFi.SSID() == "" we test this wifi
+  // if (WiFi.status() == WL_DISCONNECTED || WiFi.status() == WL_IDLE_STATUS) {
+  //       //trying to fix connection in progress hanging
+  //    ETS_UART_INTR_DISABLE();
+  //    wifi_station_disconnect();
+  //    ETS_UART_INTR_ENABLE();
+  WiFi.persistent(false);
+  D_print(F("WIFI begin result="));
+  bool result = WiFi.begin(trySetupPtr->SSID, trySetupPtr->PASS);
+  D_print(result);
+  //WiFi.persistent(true);
 
 
-  String aString;
-  aString.trim();
-  Serial.print(F("Got Hostname="));
-  Serial.print(aString);
-  if (!(aString.equals(TWConfig.deviceName) && aString.length() >= 2 && aString.length() <= 32) ) {
-    D1_print(F("SW: device name changed   !!!!! "));
-    AppWebPtr->setDeviceName(aString);
-    if (TWConfig.deviceName != aString) {
-      D1_print(F("SW: need to rewrite config   !!!!! "));
-      D_print(TWConfig.deviceName);
-      D_print(F("!="));
-      D_println(aString);
-      TWConfig.deviceName = aString;  //put back devicename in config if needed
-      TWConfig.changed = true;
-      TWConfig.save();
-    }
+  // }
 
-  }
-  delay(100);
+  //  String aString;
+  //  aString.trim();
+  //  Serial.print(F("Got Hostname="));
+  //  Serial.print(aString);
+  //  if (!(aString.equals(TWConfig.deviceName) && aString.length() >= 2 && aString.length() <= 32) ) {
+  //    D1_print(F("SW: device name changed   !!!!! "));
+  //    AppWebPtr->setDeviceName(aString);
+  //    if (TWConfig.deviceName != aString) {
+  //      D1_print(F("SW: need to rewrite config   !!!!! "));
+  //      D_print(TWConfig.deviceName);
+  //      D_print(F("!="));
+  //      D_println(aString);
+  //      TWConfig.deviceName = aString;  //put back devicename in config if needed
+  //      TWConfig.changed = true;
+  //      TWConfig.save();
+  //    }
+  //
+  //  }
+  //  delay(100);
   // TODO : check wifi before validate
   //  Serial.print(F("WS: Set STATION mode with '"));
   //  Serial.print(wifiSSD);

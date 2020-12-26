@@ -44,6 +44,8 @@ void   captiveDNSStart() {
   if (!dnsServer.start(DNS_PORT, "*", WiFi.softAPIP()) ) {
     D1_println(F("DNS: Captive DNS erreur !!!!"));
   }
+  //wifi_softap_dhcps_stop();
+  wifi_softap_dhcps_start();
   captiveDNS = true;
 }
 
