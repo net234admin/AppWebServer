@@ -39,14 +39,14 @@ AppWebServer    myWebServer;
 
 
 
-
+bool ledState = LED_ON;
 
 
 void setup() {
 
   // Setup the led 
   pinMode( LED_LIFE, OUTPUT );
-  digitalWrite( LED_LIFE, LED_ON );
+  digitalWrite( LED_LIFE, ledState );
 
   // init Serial
   Serial.begin(115200);
@@ -54,7 +54,8 @@ void setup() {
 
   // setup the WebServer 
   myWebServer.setCallBack_OnTranslateKey(&on_TranslateKey);
-  myWebServer.begin();
+  myWebServer.setCallBack_OnStartRequest(&on_HttpRequest);
+  myWebServer.begin("FIRSTDEMO");   // setup the device name only on the very first boot (or after a new FS download)
 }
 
 
@@ -69,10 +70,30 @@ void loop() {
 }// loop
 
 
+////// === call back to handle request (grab the "Swith the led button") ============================
+
+
+void on_HttpRequest(const String &filename, const  String &submitValue) {
+  Serial.println(submitValue);
+  if  ( submitValue ==  "switchLed" ) {
+    ledState = ! ledState;
+    Serial.print("Led state = ");
+       if ( ledState == LED_ON ) {
+      Serial.println("LED ON");
+    } else {
+      Serial.println("LED OFF");
+    }
+
+    digitalWrite(LED_LIFE, ledState); 
+  }
+}
+
+
+
 ////// ==== callback to display data on page /////////////
 
 //on_TranslateKey is call on each tag "[#key#]" the tag will be replaced by the value you put in 'key' parameter
-//Pages request 2 key
+//webdemo request 2 key
 void on_TranslateKey(String & key) {
 
   if ( key.equals("APP_VERSION") ) {
@@ -83,7 +104,7 @@ void on_TranslateKey(String & key) {
   } else if ( key.equals("ledState") ) {
 
   // ledState to say if led is on or off
-    if ( digitalRead(LED_LIFE) == LED_ON ) {
+    if ( ledState == LED_ON ) {
       key = "LED ON";
     } else {
       key = "LED OFF";
