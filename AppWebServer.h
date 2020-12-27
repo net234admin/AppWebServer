@@ -70,10 +70,10 @@
 
 
 // Main Object limited to one instance
-class AppWeb {
+class AppWebServer {
   public:
-    AppWeb();                               // constructor mono instance grab current wifi configuration
-    ~AppWeb();                              // destructor mono instance
+    AppWebServer();                               // constructor mono instance grab current wifi configuration
+    ~AppWebServer();                              // destructor mono instance
     void begin();                                   // main server start as was configured
     void end();                                     // main server stop
     bool razConfig();                               // efface la config enregistree

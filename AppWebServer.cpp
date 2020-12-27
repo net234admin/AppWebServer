@@ -23,7 +23,7 @@
 #include "AppWebServer.h"
 //#include <ESP8266WiFi.h>
 // pointeur vers l'instance utilisateur
-AppWeb*    AppWebPtr = NULL;
+AppWebServer*    AppWebPtr = NULL;
 
 #include "AppWebConfig.h"  //include LittleFS
 FileConfig  TWConfig;
@@ -57,7 +57,7 @@ using namespace TWS;
 
 // Objet AppWeb
 //// constructeur
-AppWeb::AppWeb() {
+AppWebServer::AppWebServer() {
   if (AppWebPtr != NULL) {
     if (debugLevel > 0) Serial.print(F("tws - Error: Only one instance for MiniServeurWeb"));
     while (true) delay(100);
@@ -65,14 +65,14 @@ AppWeb::AppWeb() {
   AppWebPtr = this;
 }
 // Destructor
-AppWeb::~AppWeb() {
+AppWebServer::~AppWebServer() {
   if (AppWebPtr == NULL) return;
   this->end();
   AppWebPtr = NULL;
 }
 
 
-void AppWeb::end() {
+void AppWebServer::end() {
   //  WiFi.mode(WIFI_OFF);
   //  //  softAP = false;
   //  delay(10);
@@ -85,7 +85,7 @@ void AppWeb::end() {
 
 
 
-void AppWeb::begin() {
+void AppWebServer::begin() {
   // FS
   if (!TWFS.begin()) {
     D1_println(F("TW: FS en erreur  !!!!!"));
@@ -182,7 +182,7 @@ void AppWeb::begin() {
 //   usefull if you setup different device at the same place
 // device name is used as APname and as DNSname
 
-void AppWeb::setDeviceName(const String devicename) {
+void AppWebServer::setDeviceName(const String devicename) {
   _deviceName = devicename;
   // Check a valid hostname
   // configation du nom du reseau AP : LITTLEWEB_XXYY  avec les 2 dernier chifre hexa de la mac adresse
@@ -199,7 +199,7 @@ void AppWeb::setDeviceName(const String devicename) {
 
 
 
-void AppWeb::handleEvent() {
+void AppWebServer::handleEvent() {
   // Check if mode changed
   WiFiMode_t wifimode = WiFi.getMode();
   if (  _WiFiMode != wifimode) {
@@ -369,25 +369,25 @@ void AppWeb::handleEvent() {
 }
 
 
-void AppWeb::setCallBack_OnTranslateKey(void (*ontranslatekey)(String & key))  {
+void AppWebServer::setCallBack_OnTranslateKey(void (*ontranslatekey)(String & key))  {
   onTranslateKeyPtr =  ontranslatekey;
 }
 
 
-void AppWeb::setCallBack_OnRefreshItem(bool (*onrefreshitem)(const String & keyname, String & key)) {
+void AppWebServer::setCallBack_OnRefreshItem(bool (*onrefreshitem)(const String & keyname, String & key)) {
   onRefreshItemPtr = onrefreshitem;
 }
 //
 //
-//void AppWeb::setCallBack_OnRepeatLine(bool (*onrepeatline)(const int num)) {     // call back pour gerer les Repeat
+//void AppWebServer::setCallBack_OnRepeatLine(bool (*onrepeatline)(const int num)) {     // call back pour gerer les Repeat
 //  onRepeatLinePtr = onrepeatline;
 //}
 
-bool AppWeb::razConfig() {                             // efface la config enregistree
+bool AppWebServer::razConfig() {                             // efface la config enregistree
   return (TWConfig.erase());
 }
 
-String AppWeb::createRandom() {
+String AppWebServer::createRandom() {
   _random = random(1000000, 9999999);
   return (_random);
 }

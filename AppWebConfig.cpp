@@ -32,22 +32,22 @@
 #include "AppWebConfig.h"
 
 //String in FLASH (use FPSTR to get them)
- static const char F_captiveWebFolder[] PROGMEM = "captiveWebFolder";
+static const char F_captiveWebFolder[] PROGMEM = "captiveWebFolder";
 
 bool FileConfig::read() {
-  changed=false;
-  initInfo="";
-  deviceName="";              //invalid value are replacet by APPWEB_XXYY
+  changed = false;
+  initInfo = "";
+  deviceName = "";            //invalid value are replacet by APPWEB_XXYY
   defaultWebFolder = ""; //F("/web");      //default value
   captiveWebFolder = ""; //F("/web/wifisetup");      //default value
   bootForceAP = 0;
   D_println(F("TW get config"));
-  File aFile = TWFS.open(F("/AppWebServer.conf"), "r");  
+  File aFile = TWFS.open(F("/AppWebServer.conf"), "r");
   if (!aFile) {
     D_println(F("TW: AppWebServer.conf not found"));
     aFile = TWFS.open(F("/AppWebServer.ini"), "r");
     if (!aFile) {
-       D1_println(F("TW: AppWebServer.ini not found !!!"));
+      D1_println(F("TW: AppWebServer.ini not found !!!"));
       return (false);
     }
   }
@@ -55,16 +55,14 @@ bool FileConfig::read() {
   String  aString;
   while ( aFile.available() )  {
     aString = aFile.readStringUntil('\n');
-    D_print(F("TW: line ='")); D_print(aString); D_println("'");
-   
+    //D_print(F("TW: line ='")); D_print(aString); D_println("'");
+
     if ( aString.startsWith(F("#")) ) {
       D_print(F("TW: '#")); D_print(aString); D_println("'");
-      
-   } else if ( aString.startsWith(FPSTR(F_captiveWebFolder)) ) {
-       captiveWebFolder = getParam(aString);
+    } else if ( aString.startsWith(FPSTR(F_captiveWebFolder)) ) {
+      captiveWebFolder = getParam(aString);
       D_print(F("TW: captiveWebFolder ='")); D_print(captiveWebFolder); D_println("'");
-      
-  } else if ( aString.startsWith(F("initInfo")) ) {
+    } else if ( aString.startsWith(F("initInfo")) ) {
       initInfo = getParam(aString);
       D_print(F("TW: initInfo ='")); D_print(initInfo); D_println("'");
     } else if ( aString.startsWith(F("deviceName")) ) {
@@ -74,14 +72,12 @@ bool FileConfig::read() {
       defaultWebFolder = getParam(aString);
       D_print(F("TW: defaultWebFolder ='")); D_print(defaultWebFolder); D_println("'");
     } else if ( aString.startsWith(F("bootForceAP")) ) {
-      bootForceAP = getParam(aString).toInt(); 
+      bootForceAP = getParam(aString).toInt();
       D_print(F("TW: bootForceAP ='")); D_print(bootForceAP); D_println("'");
     }
   }
   aFile.close();
   return (true);
-
-
 }
 
 bool FileConfig::save() {
@@ -98,8 +94,8 @@ bool FileConfig::save() {
     aFile.println(deviceName);
     D_print("deviceName=");
     D_println(deviceName);
- }
- 
+  }
+
   if (captiveWebFolder.length() > 0) {
     aFile.print(FPSTR(F_captiveWebFolder));
     aFile.print('=');
@@ -110,32 +106,32 @@ bool FileConfig::save() {
     aFile.print("defaultWebFolder=");
     aFile.println(defaultWebFolder);
   }
- if (initInfo.length() > 0) {
+  if (initInfo.length() > 0) {
     aFile.print("initInfo=");
     aFile.println(initInfo);
   }
-  if (bootForceAP>0) {
+  if (bootForceAP > 0) {
     aFile.print(F("bootForceAP="));
     aFile.println(bootForceAP);
   }
   aFile.close();
 
 
-  D_println(F("TW Config.init re read "));
+//  D_println(F("TW Config.init re read "));
   aFile = TWFS.open(F("/AppWebServer.conf"), "r");
   if (!aFile) {
-    D_println(F("TW: no config .conf"));
+    D1_println(F("TW: no saved config .conf !!!! "));
     return (false);
   }
-  D_println(F("TW: AppWebServer.conf present :"));
-
-
-  String  aString;
-  while ( aFile.available() )  {
-    aString = aFile.readStringUntil('\n');
-    D_print(F("TW: line ='")); D_print(aString); D_println("'");
-  }
-   D_println(F("TW: eof AppWebServer.conf"));
+//  D_println(F("TW: AppWebServer.conf present :"));
+//
+//
+//  String  aString;
+//  while ( aFile.available() )  {
+//    aString = aFile.readStringUntil('\n');
+//    D_print(F("TW: line ='")); D_print(aString); D_println("'");
+//  }
+//  D_println(F("TW: eof AppWebServer.conf"));
   aFile.close();
   return (true);
 }
@@ -144,7 +140,7 @@ bool FileConfig::save() {
 bool FileConfig::erase() {
   const String aFileName = F("/AppWebServer.conf");
   D_println(F("TW: Erase config !!"));
-  if ( !TWFS.exists(aFileName) )  return(true);
+  if ( !TWFS.exists(aFileName) )  return (true);
   return TWFS.remove(aFileName);
 }
 
