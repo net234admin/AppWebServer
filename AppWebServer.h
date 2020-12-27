@@ -74,7 +74,7 @@ class AppWebServer {
   public:
     AppWebServer();                               // constructor mono instance grab current wifi configuration
     ~AppWebServer();                              // destructor mono instance
-    void begin();                                   // main server start as was configured
+    void begin(const String devicename = "", const int debuglevel = 0 );                                  // main server start as was configured
     void end();                                     // main server stop
     bool razConfig();                               // efface la config enregistree
     //    TW_WiFiMode_t    getWiFiMode();  // Wifi Mode expected by user
@@ -90,7 +90,7 @@ class AppWebServer {
     //
     void handleEvent();     // handle http service (to call in top of loop)
 
-    //    void setCallBack_OnRequest(void (*onRequest)(const String &key));          // call back pour gerer les request
+    void setCallBack_OnStartRequest(void (*onstartrequest)(const String & filename, const String & submitValue));          // call back pour gerer les request
     //    void redirectTo(String const uri);   //  request will be redirected to this URI if set during or after onRequest call back                                   // force a redirect of the current request (to use in OnSubmit)
     //
     void setCallBack_OnTranslateKey(void (*onTranslateKey)(String &key));  // call back pour Fournir les [# xxxxx #]
@@ -100,7 +100,7 @@ class AppWebServer {
     //    String getArg(const String argName);
     //    String currentUri();                            // return the last requested URI (actual page in calllback)
     //    // var
-    byte debugLevel = 3;  // 0 = none / 1 = minimal / 2 = variable request / 3 = wifi debug (must be set before begin)
+
     // TODO: a passer en private
     String  _deviceName;             // AP Name  amd  mDns Name in station mode
     String  _defaultWebFolder;       // Web base Path for non captive move
@@ -110,6 +110,7 @@ class AppWebServer {
     String  _random;                 // random number changed on each request without submit
     // String  page_id;
   private:
+    byte _debugLevel = 0;  // 0 = none / 1 = minimal / 2 = variable request / 3 = wifi debug (must be set before begin)
     //int16_t _timerCaptiveAP = 0;  // timer limitation du mode AP en seconde
     //    String  _redirectUri;   //  request will be redirected to this URI if set after onRequest call back
 

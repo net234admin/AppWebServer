@@ -77,9 +77,9 @@ void translateKey(String &key) {
 
 // onRequest callback
 //pointer du gestionaire de request
-void (*onRequestPtr)(const String &filename, const String &submitvalue) = NULL;
+void (*onStartRequestPtr)(const String &filename, const String &submitvalue) = NULL;
 
-void onRequest(const String &filename, const String &submitvalue) {
+void onStartRequest(const String &filename, const String &submitvalue) {
 
   // track "form appweb_wifisetup" qui retoune SSID PASS et HOSTNAME eq deviceName
   String aString = F("appweb_wifisetup_");
@@ -88,7 +88,7 @@ void onRequest(const String &filename, const String &submitvalue) {
     do_appweb_wifisetup();
     return;
   }
-  if (onRequestPtr) (*onRequestPtr)(filename, submitvalue);
+  if (onStartRequestPtr) (*onStartRequestPtr)(filename, submitvalue);
 }
 
 // onEndOfRequest callback
@@ -240,15 +240,15 @@ void HTTP_HandleRequests() {
   // if redirectTo(aUri) is set then an error 302 will be sent to redirect request
 
   TWS::redirectUri = "";
-  const String* submitPtr = nullptr;
+  String submitValue;
   if ( Server.hasArg(F("submit")) ) {
-    submitPtr = &(Server.arg(F("submit")));
+    submitValue = Server.arg(F("submit"));
     Serial.print(F("WEB: Submit action '"));
-    Serial.print(*submitPtr);
+    Serial.print(submitValue);
     Serial.println("'");
   }
 
-  onRequest(fileName, *submitPtr);
+  onStartRequest(fileName, submitValue);
 
   if (TWS::redirectUri.length() > 0) {
     Serial.print(F("WEB redirect "));
@@ -438,7 +438,7 @@ void HTTP_HandleRequests() {
     //Server.client().stop();
     D_println(F("WEB: GET answered with no stop "));
     aFile.close();
-    onEndOfRequest(fileName, *submitPtr);
+    onEndOfRequest(fileName, submitValue);
     return;
   }
   //  deal with file not found

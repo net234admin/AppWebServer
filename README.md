@@ -23,8 +23,11 @@ This library uses classic HTML CSS javascipt files with dynamic (ajax like) upda
 
 ## Quick Start
 - Open "FirstDemo" in your arduino IDE (File Sample AppWebServer).
-- Flash the web part with "ESP8266"" "Tools Esp8266 LittleFS Data Upload"
-- Select erase flash "Sketch and WiFi Settings" (only for this demo) 
+- Select in tools menu -> Generic ESP8266 Module (should work on most ESP8266)
+- Select in tools menu -> erase flash "Sketch and WiFi Settings" (only for this demo)
+- Select in tools menu -> builtIn led: "2"
+- Select in tools menu -> Flash Size 4MB (FS:3MB...
+- Flash the web part : tool menu -> Esp8266 LittleFS Data Upload
 - Compile and download Firstdemo.
 
 - Connect to WiFi "APPWEBDEMO" with your computer or tablet.

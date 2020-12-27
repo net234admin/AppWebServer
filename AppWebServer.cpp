@@ -59,7 +59,7 @@ using namespace TWS;
 //// constructeur
 AppWebServer::AppWebServer() {
   if (AppWebPtr != NULL) {
-    if (debugLevel > 0) Serial.print(F("tws - Error: Only one instance for MiniServeurWeb"));
+    D1_print(F("tws - Error: Only one instance for AppWebServer"));
     while (true) delay(100);
   }
   AppWebPtr = this;
@@ -85,7 +85,7 @@ void AppWebServer::end() {
 
 
 
-void AppWebServer::begin() {
+void AppWebServer::begin(const String devicename ,const int debuglevel  ) {
   // FS
   if (!TWFS.begin()) {
     D1_println(F("TW: FS en erreur  !!!!!"));
@@ -102,9 +102,10 @@ void AppWebServer::begin() {
   _captiveWebFolder = TWConfig.captiveWebFolder;
   if (_captiveWebFolder.length() == 0) _captiveWebFolder = F("/web/wifisetup");  // todo: should be "/captive" ??
   _captiveAP = true;  //
-
-  Serial.setDebugOutput(true);
-
+  if (TWConfig.deviceName.length() == 0) TWConfig.deviceName = devicename;
+  _debugLevel=debuglevel;
+  Serial.setDebugOutput(_debugLevel > 2);
+  
 
 
   // grab WiFi actual status
@@ -368,9 +369,12 @@ void AppWebServer::handleEvent() {
 
 }
 
-
 void AppWebServer::setCallBack_OnTranslateKey(void (*ontranslatekey)(String & key))  {
   onTranslateKeyPtr =  ontranslatekey;
+}
+
+void AppWebServer::setCallBack_OnStartRequest(void (*onstartrequest)(const String & filename, const String & submitValue))  {
+  onStartRequestPtr =  onstartrequest;
 }
 
 

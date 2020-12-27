@@ -23,15 +23,18 @@
 
 ## Demo Rapide
 - Ouvrez le fichier "FirstDemo" dans votre IDE arduino IDE (Fichier -> Exemple -> AppWebServer).
-- Téléchargez le site Web avec  "ESP8266"" "Outils Esp8266 LittleFS Data Upload"
-- Choisissez "outil -> "erase flash" "Sketch and WiFi Settings" (Seulement pour cette demo) 
+- Dans le menu Outil -> Choisissez "Generic ESP8266 Module" (fonctionne avec la plupart des ESP8266)
+- Dans le menu Outil -> erase flash "Sketch and WiFi Settings" (Seulement pour cette demo) 
+- Dans le menu Outil -> builtIn led: "2"
+- Dans le menu Outil -> Flash Size 4MB (FS:3MB...
+- Téléchargez la partie site Web avec le menu Outil -> Esp8266 LittleFS Data Upload"
 - Compilez et téléchargez Firstdemo.
 
 - Connectez vous au WiFi "APPWEBDEMO" avec un ordinateur ou une tablette.
 - Au bout de quelques secondes une fenêtre s'ouvre avec la page de configuration (si la page ne s'ouvre pas tapez http://10.10.10.10 dans votre navigateur)
 - Entrez le nom et le mot de passe de votre WiFi local puis enregistrez (save).
 - Connectez votre ordinateur à votre WiFI local WiFi puis tapez http://appwebdemo.local dans votre navigateur web préféré.
-- Vous aurez accès a votre ESP8266 et vous pourrez allumer ou éteindre sa LED interne..
+- Vous aurez accès à votre ESP8266 et vous pourrez allumer ou éteindre sa LED interne..
 - Essayer d'autres exemple plus dynamiques dans le menu Fichier -> Exemple -> AppWebServer de votre IDE Arduino.
 
 
