@@ -159,19 +159,21 @@ void do_appweb_wifisetup() {
 void tryConfigWifisetup() {
   D_println(F("tryConfigWifisetup"));
   if (!trySetupPtr || trySetupPtr->isTrying) return;
+  D_println(F("---> start try"));
   trySetupPtr->isTrying = true;
   // if no wifi configured : WiFi.SSID() == "" we test this wifi
   // if (WiFi.status() == WL_DISCONNECTED || WiFi.status() == WL_IDLE_STATUS) {
   //       //trying to fix connection in progress hanging
-  //    ETS_UART_INTR_DISABLE();
-  //    wifi_station_disconnect();
-  //    ETS_UART_INTR_ENABLE();
+
   WiFi.persistent(false);
+//  ETS_UART_INTR_DISABLE();
+//  wifi_station_disconnect();
+//  ETS_UART_INTR_ENABLE();  
+  WiFi.enableSTA(false);
   D_print(F("WIFI begin result="));
   //WiFi.begin(ssid, password, channel, bssid, connect)
   bool result = WiFi.begin(trySetupPtr->SSID, trySetupPtr->PASS); //,0,NULL,true);
   D_print(result);
-  delay(100);
   //WiFi.persistent(true);
 
 

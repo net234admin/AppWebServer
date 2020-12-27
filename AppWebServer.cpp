@@ -282,9 +282,25 @@ void AppWeb::handleEvent() {
   //    4 : WL_CONNECT_FAILED if password is incorrect
   //    6 : WL_DISCONNECTED if module is not configured in station mode
   if (status != oldStatus) {
-    TryStatus = status;
+    TryStatus = status;  // chaine pour reporting
+
     Serial.print("----->  Wifi Status : ");
     Serial.println(status);
+    //    D_println(F("SW: Read wifi current mode and config "));
+    //    D_print(F("SW: SoftAP SSID "));
+    //    D_println(WiFi.softAPSSID());
+    //    D_print(F("SW: SoftAP IP "));
+    //    D_println(WiFi.softAPIP());
+    //
+    //    D_print(F("SW: Station SSID "));
+    //    D_println(WiFi.SSID());
+    //
+    //    D_print(F("SW: Station password "));
+    //    D_println(WiFi.psk());
+    //
+    //    D_print(F("SW: Station IP "));
+    //    D_println(WiFi.localIP());
+
     oldStatus = status;
     if (status == WL_CONNECTED) {
 
@@ -298,15 +314,16 @@ void AppWeb::handleEvent() {
 
 
       TWS::localIp = WiFi.localIP().toString();  // recuperation de l'ip locale
-      if (trySetupPtr && trySetupPtr->isTrying) {
-        //WiFi.enableSTA(false);
+ 
+      if (trySetupPtr && trySetupPtr->isTrying ) {
+
         WiFi.enableSTA(false);
         WiFi.persistent(true);
-        D_println(F("Saving config to Flash"));
-
+        D_println(F("----> Moving to STATION"));
+        WiFi.enableAP(false);    // stop AP
         WiFi.begin(trySetupPtr->SSID, trySetupPtr->PASS);  // save STATION setup in flash
 
-        WiFi.enableAP(false);    // stop AP
+
 
         if ( trySetupPtr->deviceName != _deviceName) {
           D_print(F("SW: need to init WiFi same as new config   !!!!! "));
@@ -340,11 +357,10 @@ void AppWeb::handleEvent() {
       D_println(F("Remove try config"));
       //set back old credential if any
       if (trySetupPtr->SSID.length() > 0) {
+        WiFi.enableSTA(false);
         WiFi.begin(trySetupPtr->oldSSID, trySetupPtr->oldPASS);  // put back STA old credential if any
-        delay(5);  // need to setup ?
       }
       WiFi.persistent(true);
-      WiFi.enableSTA(false);
       delete trySetupPtr;
       trySetupPtr = nullptr;
 
