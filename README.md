@@ -1,6 +1,6 @@
 ## Main version is here :arrow_right: [Main Branch](https://github.com/net234/AppWebServer)
 
-# AppWebServer betaversion
+# AppWebServer beta version B01
 
 Simple Arduino lib to build an interative aplication upon local html pages
 A file oriented Web Server build for dynamic user inteface with ESP8266 application.
@@ -23,9 +23,21 @@ This library uses classic HTML CSS javascipt files with dynamic (ajax like) upda
 
 
 ## How It Works
-- A standard web is download via LittleFS on the flash
+- Standard web pages recorded on the flash memory can be displayed on a browser.
+- Specific keywords on html pages can be replace with dynamic data on the fly.
 
 ## Quick Start
+- Open "FirstDemo" in your arduino IDE (File Sample AppWebServer).
+- Flash the web part with "ESP8266"" "Tools Esp8266 LittleFS Data Upload"
+- Select erase flash "Sketch and WiFi Settings" (only for this demo) 
+- Compile and download Firstdemo.
+
+- Connect to WiFi "APPWEBDEMO" with your computer or tablet.
+- After few seconds a window will popup with a configuration page (if no popup windows call http://10.10.10.10)
+- Configure your local WiFi name and password and save.
+- Reconnect your computer to your local WiFi and call  http://appwebdemo.local
+- You will got access to your ESP8266 and you can turn off or on the board LED.
+- See more dynamics demo in Exemple
 
 ### Installing
 
