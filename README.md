@@ -1,5 +1,5 @@
 ## Main version is here :arrow_right: [Main Branch](https://github.com/net234/AppWebServer)
-## Text en francais :arrow_right: [En Francais](LISEZMOI.MD)
+## Text en francais :arrow_right: [En Francais](LISEZMOI.md)
 
 # AppWebServer beta version B01
 
