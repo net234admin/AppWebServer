@@ -380,13 +380,12 @@ void HTTP_HandleRequests() {
             int len = stopPtr - startPtr;
             if (  stopPtr && len >= 3 && len <= 40 ) { // grab keyword if stop ok and lenth of keyword under 40
               // grab keyword
-              char aKey[41];
-              strncpy(aKey, startPtr, len);
-              aKey[len] = 0x00;   // aKey is Cstring
-              aStrKey = aKey;
+              stopPtr[0] = 0x00;  // end of keyword
+              stopPtr +=2;        // skip "#]"
+              aStrKey = startPtr;
               aStrKey.trim();
               // Save the line in a string
-              repeatString = stopPtr + 2;
+              repeatString = stopPtr;
               repeatActive = true;
               repeatNumber = 0;
             } // end if  repeat KEY ok
@@ -406,26 +405,23 @@ void HTTP_HandleRequests() {
           char* startPtr = currentPtr + 2;
           char* stopPtr = strstr( startPtr + 1, "#]" ); // at least 1 letter keyword [#  #]
           int len = stopPtr - startPtr;
-          if (  !stopPtr || len <= 0 || len >= 40 ) { // abort if no stop or lenth of keyword over 40
+          if (  !stopPtr || len <= 0 || len >= 50 ) { // abort if no stop or lenth of keyword over 50
             break;
           }
           // grab keyword
-          char aKey[41];
-          strncpy(aKey, startPtr, len);
-          aKey[len] = 0x00;   // aKey is Cstring
-          String aStr;
-          aStr.reserve(100);
-          aStr = aKey;
+          stopPtr[0] = 0x00;   // aKey is Cstring
+          stopPtr += 2;        // skip "#]"
+          String aStr = startPtr;
           aStr.trim();
           // callback to deal with keywords
           translateKey(aStr);
 
           // Copie de la suite de la chaine dans une chaine
-          String bBuffer = stopPtr + 2;
+          String bBuffer = stopPtr;
 
           // Ajout de la chaine de remplacement
-          strncpy(currentPtr, aStr.c_str(), 100);
-          currentPtr += aStr.length();
+          strncpy(currentPtr, aStr.c_str(), 200);
+          currentPtr += min(aStr.length(),200U);
           // Ajoute la suite
           strncpy(currentPtr, bBuffer.c_str(), 500);
           size = strlen(aBuffer);
