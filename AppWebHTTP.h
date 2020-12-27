@@ -246,18 +246,6 @@ void HTTP_HandleRequests() {
     Serial.print(F("WEB: Submit action '"));
     Serial.print(*submitPtr);
     Serial.println("'");
-    //    for (uint8_t i = 0; i < Server.args(); i++) {
-    //      String argname = Server.argName(i);
-    //      if ( !argname.equals(F("submit")) && !argname.equals(F("plain")) ) {
-    //        Serial.print(F("WEB: Submit arg "));
-    //        Serial.print(argname);
-    //        Serial.print(F("->"));
-    //        Serial.println(Server.arg(i));
-    //        String value = Server.arg(i);
-    //        //  onSubmit(value);   //appel du callback
-    //      }
-    //    }
-
   }
 
   onRequest(fileName, *submitPtr);
@@ -361,8 +349,8 @@ void HTTP_HandleRequests() {
     Server.send(200, fileMIME.c_str());
     aFile.setTimeout(0);   // to avoid delay at EOF
     static    char aBuffer[1025];               // static dont overload heap
-    static    char repeatBuffer[1025];          // static dont overload heap
-    //todo avoid repeatBuffer if repeat not used
+    //static    char repeatBuffer[1025];          // static dont overload heap
+    String repeatString;
     int  repeatNumber;
     bool repeatActive = false;
     String aStrKey;  // la clef du repeat
@@ -397,8 +385,8 @@ void HTTP_HandleRequests() {
               aKey[len] = 0x00;   // aKey is Cstring
               aStrKey = aKey;
               aStrKey.trim();
-              // Save the line in  repeat buffer
-              strcpy(repeatBuffer, stopPtr + 2);
+              // Save the line in a string
+              repeatString = stopPtr + 2;
               repeatActive = true;
               repeatNumber = 0;
             } // end if  repeat KEY ok
@@ -408,7 +396,7 @@ void HTTP_HandleRequests() {
           aBuffer[0] = 0x00;
           // ask the sketch if we should repeat
           repeatActive = onRepeatLine(aStrKey, repeatNumber++);
-          if ( repeatActive ) strcpy(aBuffer, repeatBuffer);
+          if ( repeatActive ) strcpy(aBuffer, repeatString.c_str());
           size = strlen(aBuffer);
         }
 
@@ -432,15 +420,14 @@ void HTTP_HandleRequests() {
           // callback to deal with keywords
           translateKey(aStr);
 
-          // Copie de la suite de la chaine ailleur
-          static  char bBuffer[500];   //  todo   deal correctly with over 500 char lines  // static dont overload heap
-          strncpy(bBuffer, stopPtr + 2, 500);
+          // Copie de la suite de la chaine dans une chaine
+          String bBuffer = stopPtr + 2;
 
           // Ajout de la chaine de remplacement
           strncpy(currentPtr, aStr.c_str(), 100);
           currentPtr += aStr.length();
           // Ajoute la suite
-          strncpy(currentPtr, bBuffer, 500);
+          strncpy(currentPtr, bBuffer.c_str(), 500);
           size = strlen(aBuffer);
 
           //
