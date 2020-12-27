@@ -102,7 +102,7 @@ void AppWeb::begin() {
   _captiveWebFolder = TWConfig.captiveWebFolder;
   if (_captiveWebFolder.length() == 0) _captiveWebFolder = F("/web/wifisetup");  // todo: should be "/captive" ??
   _captiveAP = true;  //
-  //_timerCaptiveAP = 0;
+
   Serial.setDebugOutput(true);
 
 
@@ -139,29 +139,15 @@ void AppWeb::begin() {
     timerCaptivePortal = TWConfig.bootForceAP * 60;
   }
 
-
-  Serial.print(F("tws: Station SSID "));
-  Serial.println(WiFi.SSID());
-  Serial.print(F("tws: Station IP "));
-  Serial.println(WiFi.localIP());
-  Serial.print(F("tws: WIFI Mode "));
-  Serial.println(WiFi.getMode());
-  //delay(1000); // Without delay I've seen the IP address blank
   _deviceName = WiFi.softAPSSID();              //device name from WiFi
 
   if ( TWConfig.deviceName != _deviceName) {
     D_print(F("SW: need to init WiFi same as config   !!!!! "));
-    D_print(TWConfig.deviceName);
-    D_print(F("!="));
-    D_println(_deviceName);
     setDeviceName(TWConfig.deviceName);  //check devicename validity
     WiFi.softAP(_deviceName);
     //WiFi.persistent(true);
     if (TWConfig.deviceName != WiFi.softAPSSID()) {
       D_print(F("SW: need to need to rewrite config   !!!!! "));
-      D_print(TWConfig.deviceName);
-      D_print(F("!="));
-      D_println(WiFi.softAPSSID());
       TWConfig.deviceName = WiFi.softAPSSID();  //put back devicename in config if needed
       TWConfig.changed = true;
       TWConfig.save();
@@ -230,8 +216,8 @@ void AppWeb::handleEvent() {
     D_print(F("SW: Station SSID "));
     D_println(WiFi.SSID());
 
-    D_print(F("SW: Station password "));
-    D_println(WiFi.psk());
+    //    D_print(F("SW: Station password "));
+    //    D_println(WiFi.psk());
 
     D_print(F("SW: Station IP "));
     D_println(WiFi.localIP());
@@ -249,21 +235,23 @@ void AppWeb::handleEvent() {
         //      WiFi.softAP(_deviceName);
         //    }
         //        delay(100);
-        D_println(F("WS: reconfig APIP 10.10.10.10   !!!!!!!!!!"));
-        IPAddress local_IP(10, 10, 10, 10);
-        IPAddress mask(255, 255, 255, 0);
-        bool result = WiFi.softAPConfig(local_IP, local_IP, mask);
-        D_print(F("SW: softapconfig = ")); D_println(result);
-        D_print(F("SW: SoftAP IP = "));
-        D_println(WiFi.softAPIP());
+        D_println(F("WS: need reconfig APIP 10.10.10.10   !!!!!!!!!!"));
+        Serial.println("reset.");
+        delay(3000);
+        ESP.reset();
+        //        IPAddress local_IP(10, 10, 10, 10);
+        //        IPAddress mask(255, 255, 255, 0);
+        //        bool result = WiFi.softAPConfig(local_IP, local_IP, mask);
+        //        D_print(F("SW: softapconfig = ")); D_println(result);
+        //        D_print(F("SW: SoftAP IP = "));
+        //        D_println(WiFi.softAPIP());
 
       }
-      //   if (WiFi.getPersistent()) {
+
       D_println(F("SW: Captive start"));
 
       captiveDNSStart();
 
-      //   }
     }
     //  ETS_UART_INTR_DISABLE();
     //  WiFi.disconnect(); //  this alone is not enough to stop the autoconnecter
@@ -304,17 +292,13 @@ void AppWeb::handleEvent() {
     oldStatus = status;
     if (status == WL_CONNECTED) {
 
-      bool result = MDNS.begin(_deviceName);
+
       //MDNS.addService("http", "tcp", 80);
-      Serial.print(F("STA: MS DNS ON : "));
-      Serial.print(_deviceName);
-      Serial.print(F(" r="));
-      Serial.println(result);
 
 
 
       TWS::localIp = WiFi.localIP().toString();  // recuperation de l'ip locale
- 
+
       if (trySetupPtr && trySetupPtr->isTrying ) {
 
         WiFi.enableSTA(false);
@@ -348,6 +332,12 @@ void AppWeb::handleEvent() {
         trySetupPtr = nullptr;
 
       }
+      bool result = MDNS.begin(_deviceName);
+      Serial.print(F("STA: MS DNS ON : "));
+      Serial.print(_deviceName);
+      Serial.print(F(" r="));
+      Serial.println(result);
+
     } else {
       MDNS.end();  // only if connected
     }
