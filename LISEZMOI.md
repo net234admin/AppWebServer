@@ -12,17 +12,17 @@
 
 ## Contenu
  - [Comment Cela Fonctionne](#comment-cela-fonctionne)
- - [Demo Rapide](#demo_rapide)
+ - [Demo Rapide](#demo-rapide)
  - [Releases](#releases)
  - [Contributions](#contributions)
 
 
 ## Comment Cela Fonctionne
-- Des pages Web Standards sont enregistées en memoire flash sous forme de fichiers (LittleFS) elle sont affichées a la demande dans un navigateur classique.
-- Des mots clefs spécifiques dans les pages Web permettent d'afficher des données dynamiques elles sont remplacée "à la volée".
+- Des pages Web Standards sont enregistrées en mémoire flash sous forme de fichiers (LittleFS) elle sont affichées a la demande dans un navigateur classique.
+- Des mots clefs spécifiques dans les pages Web permettent d'afficher des données dynamiques. Elles sont remplacée "à la volée".
 
 ## Demo Rapide
-- Ouvrez le fichier "FirstDemo" ddans votre IDE arduino IDE (Fichier -> Exemple -> AppWebServer).
+- Ouvrez le fichier "FirstDemo" dans votre IDE arduino IDE (Fichier -> Exemple -> AppWebServer).
 - Téléchargez le site Web avec  "ESP8266"" "Outils Esp8266 LittleFS Data Upload"
 - Choisissez "outil -> "erase flash" "Sketch and WiFi Settings" (Seulement pour cette demo) 
 - Compilez et téléchargez Firstdemo.
@@ -30,8 +30,8 @@
 - Connectez vous au WiFi "APPWEBDEMO" avec un ordinateur ou une tablette.
 - Au bout de quelques secondes une fenêtre s'ouvre avec la page de configuration (si la page ne s'ouvre pas tapez http://10.10.10.10 dans votre navigateur)
 - Entrez le nom et le mot de passe de votre WiFi local puis enregistrez (save).
-- Connectez votre ordinateur a votre WiFI local WiFi puis tapez http://appwebdemo.local dans votre navigateur web préféré.
-- Vous aurez accès a votre ESP8266 et vous pourrez allumer ou eteindre sa LED interne..
+- Connectez votre ordinateur à votre WiFI local WiFi puis tapez http://appwebdemo.local dans votre navigateur web préféré.
+- Vous aurez accès a votre ESP8266 et vous pourrez allumer ou éteindre sa LED interne..
 - Essayer d'autres exemple plus dynamiques dans le menu Fichier -> Exemple -> AppWebServer de votre IDE Arduino.
 
 
@@ -39,17 +39,17 @@
 ##### betaversion B01  27/12/2020 - pre release of the lib Copyright 2020 Pierre HENRY net23@frdev.com 
 
 
-fonctionne avec l'IDE arduino version  1.6.5-1044-g170995a, built on Aug 10, 2015 of the ESP8266 Arduino library.
+fonctionne avec l'IDE Arduino version  1.6.5-1044-g170995a, built on Aug 10, 2015 of the ESP8266 Arduino library.
 
 
 ### Contributions
-Rien de ceci n'aurai été fait sans l'incoyable aide de la communauté Arduino. Je ne vous remercierai jamais assez. Ceci est mon premier essais de devellopement en logiciel libre et je dois reconnaitre que c'est un univers incroyable d'echange et de créativité. Encore merci à tous pour ce devouement extraordinaire.
+Rien de ceci n'aurai été fait sans l'incroyable aide de la communauté Arduino. Je ne vous remercierai jamais assez. Ceci est mon premier essais de développement en logiciel libre et je dois reconnaitre que c'est un univers inimaginable d'échanges et de créativité. Encore merci à tous pour ce dévouement extraordinaire.
 
-Rmerciment spécial a [tzapu](https://github.com/tzapu/WiFiManager) pour le travail sur WiFimanager.  AppWebServer n'utilise pas la librairie WiFimanager mais les fonctionalités similaire y sont implantées.
+Remerciement spécial à [tzapu](https://github.com/tzapu/WiFiManager) pour le travail sur [WiFimanager](https://github.com/tzapu/WiFiManager).  AppWebServer n'utilise pas la librairie WiFimanager mais des fonctionnalités très similaires y sont implantées.
 
-Cette documentation est a finir
+Cette documentation est à finir
 
-Il manque beaucoups de remerciments.
+Il manque beaucoup de remerciements.
 
 #### Inspiration
 - http://www.esp8266.com/viewtopic.php?f=29&t=2520
