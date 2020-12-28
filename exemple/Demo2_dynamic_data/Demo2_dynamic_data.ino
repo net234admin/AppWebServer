@@ -65,6 +65,7 @@ void setup() {
   // setup the WebServer
   myWebServer.setCallBack_OnTranslateKey(&on_TranslateKey);
   myWebServer.setCallBack_OnStartRequest(&on_HttpRequest);
+  myWebServer.setCallBack_OnRefreshItem(&on_RefreshItem);
   myWebServer.begin(F(APP_VERSION));   // setup the device name only on the very first boot (or after a new FS download)
 
   //Check if WEB in flash is the good on  (dont forget to UPLOAD the web on the flash with LittleFS)
@@ -120,13 +121,20 @@ void switchLed() {
   digitalWrite(LED_LIFE, ledStatus);
 
   Serial.print("Led is ");
-  if ( ledStatus == LED_ON ) {
-    Serial.println("On");
-  } else {
-    Serial.println("Off");
-  }
+  Serial.println(getLedStatus());
 
 }
+
+String getLedStatus() {
+  // ledState to say if led is on or off
+  if ( ledStatus == LED_ON ) {
+    return ("LED ON");
+  }
+  return ("LED OFF");
+}
+
+
+
 
 
 ////// === call back to handle request (grab the "Swith the led button") ============================
@@ -138,6 +146,7 @@ void on_HttpRequest(const String &filename, const  String &submitValue) {
     switchLed();
   }
 }
+
 
 
 
@@ -153,13 +162,7 @@ void on_TranslateKey(String & key) {
     key = APP_VERSION;
 
   } else if ( key.equals("ledStatus") ) {
-
-    // ledState to say if led is on or off
-    if ( ledStatus == LED_ON ) {
-      key = "LED ON";
-    } else {
-      key = "LED OFF";
-    }
+    key = getLedStatus();
 
   } else if ( key.equals("lastClickTime") ) {
 
@@ -174,4 +177,44 @@ void on_TranslateKey(String & key) {
     Serial.println("'");
     key = "?" + key + "?"; // to make a visual on the page
   }
+}
+
+// call back to display dynamic data on the web page  (class=refresh) ----------------------------------
+bool on_RefreshItem(const String & keyname, String & key) {
+  if ( keyname.equals("ledStatus") ) {
+    String aText = getLedStatus();
+    if (aText != key) {
+      key = aText;
+      return (true);  // text is chaged display it
+    }
+    return (false);  // text is same do nothing
+  }
+
+  if ( keyname.equals("lastClickTime") ) {
+    String aText = String(lastClickTime10s / 10);
+    if (aText != key) {
+      key = aText;
+      return (true);  // text is chaged display it
+    }
+    return (false);  // text is same do nothing
+  }
+
+  
+  // timer for the refresh rate  300 is good to display seconds 
+  if ( keyname.equals("refresh") ) {
+    if (key.toInt() != 300) {
+      key = 300;
+      return (true);
+    }
+    return (false);
+  }
+
+  // track unanswred refresh
+  Serial.print(F("Got unknow refresh "));
+  Serial.print(keyname);
+  Serial.print(F("="));
+  Serial.println(key);
+
+
+  return (false);
 }
