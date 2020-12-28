@@ -110,12 +110,12 @@ void AppWebServer::begin(const String devicename ,const int debuglevel  ) {
 
   // grab WiFi actual status
   D_println(F("tws: Read wifi current status "));
-  Serial.print(F("tws: WIFI Mode "));
-  Serial.println(WiFi.getMode());
-  Serial.print(F("tws: SoftAP SSID "));
-  Serial.println(WiFi.softAPSSID());
-  Serial.print(F("tws: SoftAP IP "));
-  Serial.println(WiFi.softAPIP());
+  D_print(F("tws: WIFI Mode "));
+  D_println(WiFi.getMode());
+  D_print(F("tws: SoftAP SSID "));
+  D_println(WiFi.softAPSSID());
+  D_print(F("tws: SoftAP IP "));
+  D_println(WiFi.softAPIP());
 
   // controle de la configuration du WiFi et de la configuration demandée
   //reconfig eventuelle de l'ip AP
@@ -206,8 +206,8 @@ void AppWebServer::handleEvent() {
   if (  _WiFiMode != wifimode) {
     _WiFiMode = wifimode;
     // grab WiFi actual mode
-    D_print(F("SW: -------------> Wifi mode change to "));
-    D_println(_WiFiMode);
+    D1_print(F("WF: Wifi mode change to "));
+    D1_println(_WiFiMode);
     D_println(F("SW: Read wifi current mode and config "));
     D_print(F("SW: SoftAP SSID "));
     D_println(WiFi.softAPSSID());
@@ -236,8 +236,8 @@ void AppWebServer::handleEvent() {
         //      WiFi.softAP(_deviceName);
         //    }
         //        delay(100);
-        D_println(F("WS: need reconfig APIP 10.10.10.10   !!!!!!!!!!"));
-        Serial.println("reset.");
+        D1_println(F("WS: need reconfig APIP 10.10.10.10   !!!!!!!!!!"));
+        D1_println(F("reset."));
         delay(3000);
         ESP.reset();
         //        IPAddress local_IP(10, 10, 10, 10);
@@ -273,8 +273,8 @@ void AppWebServer::handleEvent() {
   if (status != oldStatus) {
     TryStatus = status;  // chaine pour reporting
 
-    Serial.print("----->  Wifi Status : ");
-    Serial.println(status);
+    D1_print(F("WF: Status : "));
+    D1_println(status);
     //    D_println(F("SW: Read wifi current mode and config "));
     //    D_print(F("SW: SoftAP SSID "));
     //    D_println(WiFi.softAPSSID());
@@ -304,7 +304,7 @@ void AppWebServer::handleEvent() {
 
         WiFi.enableSTA(false);
         WiFi.persistent(true);
-        D_println(F("----> Moving to STATION"));
+        D1_println(F("WF: Moving to STATION"));
         WiFi.enableAP(false);    // stop AP
         WiFi.begin(trySetupPtr->SSID, trySetupPtr->PASS);  // save STATION setup in flash
 
@@ -334,17 +334,17 @@ void AppWebServer::handleEvent() {
 
       }
       bool result = MDNS.begin(_deviceName);
-      Serial.print(F("STA: MS DNS ON : "));
-      Serial.print(_deviceName);
-      Serial.print(F(" r="));
-      Serial.println(result);
+      D_print(F("STA: MS DNS ON : "));
+      D_print(_deviceName);
+      D_print(F(" r="));
+      D_println(result);
 
     } else {
       MDNS.end();  // only if connected
     }
     if (trySetupPtr && status == WL_CONNECT_FAILED ) {
       // bad password
-      D_println(F("Bad Password"));
+      D1_println(F("Bad Password"));
       D_println(F("Remove try config"));
       //set back old credential if any
       if (trySetupPtr->SSID.length() > 0) {

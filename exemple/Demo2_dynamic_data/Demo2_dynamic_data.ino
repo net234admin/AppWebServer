@@ -93,6 +93,7 @@ void loop() {
   if (millis() - lastTime >= 100) {
     lastTime += 100;
     lastClickTime10s++;
+    
     if ( digitalRead(BP_FLASH) != bpStatus) {
       // FLASH button changed
       bpStatus = !bpStatus;
@@ -141,7 +142,6 @@ String getLedStatus() {
 
 
 void on_HttpRequest(const String &filename, const  String &submitValue) {
-  Serial.println(submitValue);
   if  ( submitValue ==  "switchLed" ) {
     switchLed();
   }

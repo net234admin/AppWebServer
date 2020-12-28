@@ -136,18 +136,18 @@ char LOCHex2Char( byte aByte) {
 //// looking for requested file into local web pages
 void HTTP_HandleRequests() {
 
-  Serial.print(F("WEB receved a "));
-  Serial.print( String((Server.method() == HTTP_GET) ? "GET '" : "POST '" ));
-  Serial.print(Server.uri());
-  Serial.print(F("' from "));
-  Serial.print(Server.client().remoteIP());
-  Serial.print(':');
-  Serial.print(Server.client().remotePort());
-  Serial.print(F(" <= "));
-  Serial.print(Server.client().localIP());
-  Serial.print(':');
-  Serial.print(Server.client().localPort());
-  Serial.println();
+  D_print(F("WEB receved a "));
+  D_print( String((Server.method() == HTTP_GET) ? "GET '" : "POST '" ));
+  D_print(Server.uri());
+  D_print(F("' from "));
+  D_print(Server.client().remoteIP());
+  D_print(':');
+  D_print(Server.client().remotePort());
+  D_print(F(" <= "));
+  D_print(Server.client().localIP());
+  D_print(':');
+  D_print(Server.client().localPort());
+  D_println();
 
   // find if client call STATION or AP
   String fileName = AppWebPtr->_defaultWebFolder; //default /web;
@@ -164,11 +164,7 @@ void HTTP_HandleRequests() {
     D_println(F("WEB: answer as AP"));
     if (AppWebPtr->_captiveAP ) {
       fileName = AppWebPtr->_captiveWebFolder; //default /web/wifisetup
-
-      //  // interception en mode captive
-      //D_print(F("WEB: hostHeader : "));
-      //D_println(Server.hostHeader());
-      //Server.uri().endsWith("redirect") ||
+      
       // in captive mode all requests to html or txt are re routed to "http://localip()" with a 302 reply
       if ( !( Server.hostHeader().startsWith( WiFi.softAPIP().toString() ) )  && Server.uri().endsWith(".html") ||  Server.uri().endsWith(".txt") || Server.uri().endsWith("redirect") ) {
         D_println(F("WEB: Request redirected to captive portal"));
@@ -184,7 +180,7 @@ void HTTP_HandleRequests() {
       //
       // Gestion des Health Check
       if (Server.uri().endsWith("generate_204") ) {
-        Serial.println(F("Generate204"));
+        D_println(F("Generate204"));
         Server.setContentLength(0);
         Server.send ( 204 );
         Server.client().stop();
@@ -243,16 +239,16 @@ void HTTP_HandleRequests() {
   String submitValue;
   if ( Server.hasArg(F("submit")) ) {
     submitValue = Server.arg(F("submit"));
-    Serial.print(F("WEB: Submit action '"));
-    Serial.print(submitValue);
-    Serial.println("'");
+    D_print(F("WEB: Submit action '"));
+    D_print(submitValue);
+    D_println("'");
   }
 
   onStartRequest(fileName, submitValue);
 
   if (TWS::redirectUri.length() > 0) {
-    Serial.print(F("WEB redirect "));
-    Serial.println(TWS::redirectUri);
+    D_print(F("WEB redirect "));
+    D_println(TWS::redirectUri);
     Server.sendHeader("Location", TWS::redirectUri, true);
     Server.send ( 302, "text/plain", "");
     Server.client().stop();
@@ -269,24 +265,22 @@ void HTTP_HandleRequests() {
   // then they are sended back to client in a urlencoded string
   if (Server.method() == HTTP_POST && Server.args() > 0 && Server.argName(0) == "refresh") {
     // debug track
-    Serial.print(F("WEB: Query refresh ("));
-    Serial.print(Server.arg(Server.args() - 1).length());
-    Serial.print(F(") "));
-    Serial.println(Server.arg(Server.args() - 1)); // try to get 'plain'
+    D_print(F("WEB: Query refresh ("));
+    D_print(Server.arg(Server.args() - 1).length());
+    D_print(F(") "));
+    D_println(Server.arg(Server.args() - 1)); // try to get 'plain'
     // traitement des chaines par le Sketch
     String answer;
     answer.reserve(1000);   // should be max answer (all answers)
-    String aKey;
-    aKey.reserve(500);      // should be max for 1 value
-    String aKeyName;
-    aKeyName.reserve(50);
+    //String aKey;
+    //aKey.reserve(500);      // should be max for 1 value
     for (uint8_t N = 0; N < Server.args(); N++) {
       //     Serial.print(F("WEB: refresh "));
       //     Serial.print(Serveur.argName(N));
       //     Serial.print(F("="));
       //      Serial.println(Serveur.arg(N));
-      aKeyName = Server.argName(N);
-      aKey = Server.arg(N);
+      String aKeyName = Server.argName(N);
+      String aKey = Server.arg(N);
       if ( !aKeyName.equals(F("plain")) && onRefreshItem(aKeyName, aKey) ) {
         if (answer.length() > 0) answer += '&';
         answer +=  aKeyName;
@@ -313,17 +307,17 @@ void HTTP_HandleRequests() {
       } // valide keyname
     } // for each arg
 
-    Serial.print(F("WEB: refresh answer ("));
-    Serial.print(answer.length());
-    Serial.print(F(") "));
-    Serial.println(answer);
+    D_print(F("WEB: refresh answer ("));
+    D_print(answer.length());
+    D_print(F(") "));
+    D_println(answer);
     //
     Server.sendHeader("Cache-Control", "no-cache");
     Server.setContentLength(answer.length());
     Server.send(200, fileMIME.c_str(), answer);
     //    Serveur.client().stop();
-    //    Serial.print(answer.length());
-    //    Serial.println(F(" car."));
+    //    D_print(answer.length());
+    //    D_println(F(" car."));
 
 
     return;
@@ -430,11 +424,11 @@ void HTTP_HandleRequests() {
         }// while
       } // else do chunk
       //
-      //      Serial.print('.');
+      //      D_print('.');
       if (size) Server.sendContent_P(aBuffer, size);
     }  // if avail
     if (doChunk) Server.chunkedResponseFinalize();
-    //    Serial.println("<");
+    //    D_println("<");
     //Server.client().stop();
     D_println(F("WEB: GET answered with no stop "));
     aFile.close();
@@ -442,7 +436,7 @@ void HTTP_HandleRequests() {
     return;
   }
   //  deal with file not found
-  Serial.println("error 404");
+  D_println("error 404");
   String message = F("File Not Found\n");
   message += "URI: ";
   message += Server.uri();
@@ -450,7 +444,7 @@ void HTTP_HandleRequests() {
   message += (Server.method() == HTTP_GET) ? "GET" : "POST";
   message += F("\nArguments: ");
   message += Server.args(); // last is plain = all arg
-  Serial.println(message);
+  D_println(message);
   message += F("\n<br>");
   for (uint8_t i = 0; i < Server.args(); i++) {
     message += " " + Server.argName(i) + ": " + Server.arg(i) + "\n<br>";
