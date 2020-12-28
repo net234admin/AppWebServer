@@ -1,6 +1,7 @@
 ## Main version is here :arrow_right: [Main Branch](https://github.com/net234/AppWebServer)
+## Text en francais :arrow_right: [En Francais](LISEZMOI.md)
 
-# AppWebServer betaversion
+# AppWebServer beta version B01
 
 Simple Arduino lib to build an interative aplication upon local html pages
 A file oriented Web Server build for dynamic user inteface with ESP8266 application.
@@ -12,78 +13,33 @@ This library uses classic HTML CSS javascipt files with dynamic (ajax like) upda
 ## Contents
  - [How it works](#how-it-works)
  - [Quick start](#quick-start)
-   - [Installing](#Installing)
-   - [Using](#using)
- - [Documentation](#documentation)
-   - [Configuration](#Configuration)
-   - [Simple Web page](#Simple-Web-page)
-   - [Debug Output](#debug)
  - [Releases](#releases)
  - [Contributors](#Contributors)
 
 
 ## How It Works
-- A standard web is download via LittleFS on the flash
+- Standard web pages recorded on the flash memory can be displayed on a browser.
+- Specific keywords on html pages can be replace with dynamic data on the fly.
 
 ## Quick Start
+- Open "FirstDemo" in your arduino IDE (File Sample AppWebServer).
+- Select in tools menu -> Generic ESP8266 Module (should work on most ESP8266)
+- Select in tools menu -> erase flash "Sketch and WiFi Settings" (only for this demo)
+- Select in tools menu -> builtIn led: "2"
+- Select in tools menu -> Flash Size 4MB (FS:3MB...
+- Flash the web part : tool menu -> Esp8266 LittleFS Data Upload
+- Compile and download Firstdemo.
 
-### Installing
-
-__This works is build and tested with the ESP8266 Arduino platform with release(2.7.0) https://github.com/esp8266/Arduino__
-- Checkout library to your Arduino libraries folder
-
-### Using
-- Include in your sketch
-```cpp
-#include <ESP8266WiFi.h>          //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
-```
-
-#include <DNSServer.h>            //Local DNS Server used for redirecting all requests to the configuration portal
-#include <ESP8266WebServer.h>     //Local WebServer used to serve the configuration portal
-#include <AppWebServer.h>          //https://github.com/net234/AppWebServer
+- Connect to WiFi "APPWEBDEMO" with your computer or tablet.
+- After few seconds a window will popup with a configuration page (if no popup windows call http://10.10.10.10)
+- Configure your local WiFi name and password and save.
+- Reconnect your computer to your local WiFi and call  http://appwebdemo.local
+- You will got access to your ESP8266 and you can turn off or on the board LED.
+- See more dynamics demo in Exemple
 
 
-- Initialize library, in your setup function add
-```cpp
-AppWebServer myWebServer;
-
-myWebServer.begin();
-```
-
-After you write your sketch and start the ESP, it will try to connect to WiFi. If it fails it starts in Access Point mode.
-While in AP mode, connect to it then open a browser to the gateway IP, default 192.168.4.1, configure wifi, save and it should reboot and connect.
-
-Also see [examples](https://github.com/net234/AppWebServer/tree/main/exemple).
-
-## Documentation
-
-#### Password protect the configuration Access Point
-todo
-```
-
-#### Callbacks
-##### Enter Config mode
-todo
-
-##### Save settings
-todo
-
-#### Configuration Portal Timeout
-If you need to set a timeout so the ESP doesn't hang waiting to be configured, for instance after a power failure, you can add
-```cpp
-wifiManager.setConfigPortalTimeout(180);
-```
-which will wait 3 minutes (180 seconds). When the time passes, the autoConnect function will return, no matter the outcome.
-Check for connection and if it's still not established do whatever is needed (on some modules I restart them to retry, on others I enter deep sleep)
-
-#### On Demand Configuration Portal
-todo
-
-#### Debug
-todo```
-
-## Releases
-##### betaversion
+## Releases https://github.com/net234/AppWebServer
+##### betaversion B01  27/12/2020 - pre release of the lib Copyright 2020 Pierre HENRY net23@frdev.com 
 
 
 works with the staging release ver. 1.6.5-1044-g170995a, built on Aug 10, 2015 of the ESP8266 Arduino library.
@@ -94,7 +50,7 @@ The support and help I got from the community has been nothing short of phenomen
 
 __THANK YOU__
 
-[tzapu](https://github.com/tzapu/WiFiManager)
+[tzapu](https://github.com/tzapu/WiFiManager) for the great work on WiFimanager.  AppWebServer dont use WiFimanager but the same functionality are implemented.
 
 lot more to add
 

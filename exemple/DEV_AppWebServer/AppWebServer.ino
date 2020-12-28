@@ -36,12 +36,12 @@
 
 
 #define LED_LIFE      LED_BUILTIN
-#define APP_VERSION   "AppWeb Validate V1.0.3"
+#define APP_VERSION   "AppWebServer Validate V1.0.4"
 
 #define LED_ON        LOW
 //Objet serveur WEB
 #include  "AppWebServer.h"
-AppWeb    ServeurWeb;
+AppWebServer    ServeurWeb;
 //int translateKey;
 //
 //bool onTranslateKeyPtr;
@@ -111,7 +111,7 @@ bool on_RefreshItem(const String & keyname, String & key) {
 
 //
 bool resetRequested = false;
-
+long refFreeMem;
 
 
 
@@ -123,6 +123,8 @@ void setup() {
   // init Serial
   Serial.begin(115200);
   Serial.println(F(APP_VERSION));
+  Serial.print(F(" Freemem Start= "));
+  Serial.println(ESP.getFreeHeap());
 
   Serial.setDebugOutput(true);  // affichage du debug mode pour webserve
 
@@ -133,6 +135,10 @@ void setup() {
   ServeurWeb.setCallBack_OnRefreshItem(&on_RefreshItem);
   //  ServeurWeb.setCallBack_OnRepeatLine(&on_RepeatLine);
   ServeurWeb.begin();
+  refFreeMem = ESP.getFreeHeap();
+  Serial.print(F(" Freemem Ref= "));
+  Serial.println(refFreeMem);
+
 }
 
 
@@ -160,7 +166,11 @@ void loop() {
     }
     if (track) {
       Serial.print("loop = ");
-      Serial.println(parsec);
+      Serial.print(parsec);
+      Serial.print(F(" Freemem = "));
+      Serial.print(ESP.getFreeHeap());
+      Serial.print(F(" / "));
+      Serial.println( refFreeMem - ESP.getFreeHeap() );
 
     }
     parsec = 0;
@@ -219,10 +229,6 @@ void loop() {
   {
     char inChar = (char)Serial.read();
     switch (inChar) {
-      //      case 'A':
-      //        Serial.println("Wifi.begin()");
-      //        WiFi.begin();
-      //        break;
       //      case 'B':
       //        Serial.println("Wifi.mode(OFF)");
       //
@@ -299,9 +305,26 @@ void loop() {
         WiFi.mode(WIFI_AP);
         break;
 
-      case 'C':
+      case '3':
+        Serial.println("setWiFiMode(WiFi_AP)");
+        WiFi.mode(WIFI_AP_STA);
+        break;
+
+      case 'S':
+        Serial.println("Start Station");
+        WiFi.begin();
+        break;
+
+      case 'A':
+        Serial.println("Start AP");
+        WiFi.softAP(ServeurWeb._deviceName);
+        break;
+
+
+
+      case 'W':
         Serial.println("setWiFiMode(WiFi_STA with SSID & PASS)");
-        //     ServeurWeb.setWiFiMode(WIFI_STA, "mon_wifi", "ultrasecret");
+        //    ServeurWeb.setWiFiMode(WIFI_STA, "mon_wifi", "ultrasecret");
         break;
 
       case 'R':
@@ -313,7 +336,12 @@ void loop() {
       case 'T':
         track = !track;
         break;
-      case 'Z':
+      case 'E':
+        Serial.println("raz config file");
+        ServeurWeb.razConfig();
+        break;
+
+      case 'L':
         Serial.print("long delay ");
         for (int N = 1; N <= 30; N++) {
           delay(1000);
