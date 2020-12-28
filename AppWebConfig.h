@@ -29,12 +29,12 @@
 #define TWFS  LittleFS
 
 
-#define D_print    Serial.print
-#define D_println  Serial.println
+//#define D_print    Serial.print
+//#define D_println  Serial.println
 #define D1_print    Serial.print
 #define D1_println  Serial.println
-//#define D_print(...)    while(0) {  }
-//#define D_println(...)  while(0) {  }
+#define D_print(...)    while(0) {  }
+#define D_println(...)  while(0) {  }
 
 
 // Objet to deal with file config
@@ -46,10 +46,10 @@ class FileConfig {
 
     //  bool fromFile = false;  //mean was read from a file
     bool changed = false;   //need to be saved
-    String initInfo;        //version of ini file
+    String webName;         //name of the web pages (to check concordance with sketch)
     String deviceName;      //saved device name
-    String webFolder;       //default web foder path   
-    String APwebFolder;      //webfolder path for AP 
+    String defaultWebFolder;       //default web folder path   
+    String captiveWebFolder;      //webfolder path for CativeAP
     int bootForceAP = 0;    //if AP mode is off force temporary AP mode at boot  (mostly for debug) 
   private:
     String getParam(const String &astring);

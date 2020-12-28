@@ -30,6 +30,10 @@ void (*onTranslateKeyPtr)(String &key) = NULL;
 void translateKey(String &key) {
   if ( key.equals(F("_CHIP_ID")) ) {
     key = ESP.getChipId();
+  } else if ( key.equals(F("_NEW_RANDOM")) ) {
+    key = AppWebPtr->createRandom();
+  } else if ( key.equals(F("_RANDOM")) ) {
+    key = AppWebPtr->_random;
   } else if ( key.equals(F("_FLASH_CHIP_ID")) ) {
     key = ESP.getFlashChipId();
   } else if ( key.equals(F("_IDE_FLASH_SIZE")) ) {
@@ -42,6 +46,12 @@ void translateKey(String &key) {
     key = WiFi.softAPmacAddress();
   } else if ( key.equals(F("_STATION_IP")) ) {
     key = TWS::localIp;
+  } else if ( key.equals(F("_STATION_SSID")) ) {
+    key = WiFi.SSID();
+  } else if ( key.equals(F("_TRY_SSID")) ) {
+    if (trySetupPtr) key = trySetupPtr->SSID;
+  } else if ( key.equals(F("_TRY_STATUS")) ) {
+    key = TWS::TryStatus;
   } else if ( key.equals(F("_HOSTNAME")) ) {
     key =  TWConfig.deviceName;
   } else if ( key.equals(F("_STATION_MAC")) ) {
@@ -64,19 +74,35 @@ void translateKey(String &key) {
 
 
 
+
 // onRequest callback
 //pointer du gestionaire de request
-void (*onRequestPtr)(const String &filename, const String &submitvalue) = NULL;
+void (*onStartRequestPtr)(const String &filename, const String &submitvalue) = NULL;
 
-void onRequest(const String &filename, const String &submitvalue) {
+void onStartRequest(const String &filename, const String &submitvalue) {
 
   // track "form appweb_wifisetup" qui retoune SSID PASS et HOSTNAME eq deviceName
-  if (&submitvalue && submitvalue.equals(F("appweb_wifisetup")) ) {
-    checkSubmitappwebWifisetup();
+  String aString = F("appweb_wifisetup_");
+  aString += AppWebPtr->_random;
+  if (&submitvalue && submitvalue.equals(aString) ) {
+    do_appweb_wifisetup();
     return;
   }
-  if (onRequestPtr) (*onRequestPtr)(filename, submitvalue);
+  if (onStartRequestPtr) (*onStartRequestPtr)(filename, submitvalue);
 }
+
+// onEndOfRequest callback
+//pointer du gestionaire de request
+void (*onEndOfRequestPtr)(const String &filename, const String &submitvalue) = NULL;
+
+void onEndOfRequest(const String &filename, const String &submitvalue) {
+  
+  // if a coonfig is waiting try it
+ if (trySetupPtr) tryConfigWifisetup();
+
+  if (onEndOfRequestPtr) (*onEndOfRequestPtr)(filename, submitvalue);
+}
+
 
 
 //pointeur du gestionanire de refresh
@@ -110,25 +136,25 @@ char LOCHex2Char( byte aByte) {
 //// looking for requested file into local web pages
 void HTTP_HandleRequests() {
 
-  Serial.print(F("WEB receved a "));
-  Serial.print( String((Server.method() == HTTP_GET) ? "GET '" : "POST '" ));
-  Serial.print(Server.uri());
-  Serial.print(F("' from "));
-  Serial.print(Server.client().remoteIP());
-  Serial.print(':');
-  Serial.print(Server.client().remotePort());
-  Serial.print(F(" <= "));
-  Serial.print(Server.client().localIP());
-  Serial.print(':');
-  Serial.print(Server.client().localPort());
-  Serial.println();
+  D_print(F("WEB receved a "));
+  D_print( String((Server.method() == HTTP_GET) ? "GET '" : "POST '" ));
+  D_print(Server.uri());
+  D_print(F("' from "));
+  D_print(Server.client().remoteIP());
+  D_print(':');
+  D_print(Server.client().remotePort());
+  D_print(F(" <= "));
+  D_print(Server.client().localIP());
+  D_print(':');
+  D_print(Server.client().localPort());
+  D_println();
 
   // find if client call STATION or AP
-  String fileName = TWConfig.webFolder; //default /web;
+  String fileName = AppWebPtr->_defaultWebFolder; //default /web;
   if ( Server.client().localIP() == WiFi.localIP() ) {
     // specific for station nothing special to do
     D_println(F("WEB: answer as STATION"));
-    
+
   } else if ( Server.client().localIP() != WiFi.softAPIP() ) {
     // specific for unknow client -> abort request
     D1_println(F("WEB: unknown client IP !!!!"));
@@ -136,45 +162,44 @@ void HTTP_HandleRequests() {
   } else {
     // specific for AP client -> check specific config for filename and handle Captive mode
     D_println(F("WEB: answer as AP"));
-    if (TWConfig.APwebFolder.length() > 0) fileName = TWConfig.APwebFolder; //default /web/wifisetup
-    //  // interception en mode captive
-    D_print(F("WEB: hostHeader : "));
-    D_println(Server.hostHeader());
-    //Server.uri().endsWith("redirect") ||
+    if (AppWebPtr->_captiveAP ) {
+      fileName = AppWebPtr->_captiveWebFolder; //default /web/wifisetup
+      
       // in captive mode all requests to html or txt are re routed to "http://localip()" with a 302 reply
-      if ( !( Server.hostHeader().startsWith( WiFi.softAPIP().toString() ) )  && Server.uri().endsWith(".html") ||  Server.uri().endsWith(".txt") ) {
+      if ( !( Server.hostHeader().startsWith( WiFi.softAPIP().toString() ) )  && Server.uri().endsWith(".html") ||  Server.uri().endsWith(".txt") || Server.uri().endsWith("redirect") ) {
         D_println(F("WEB: Request redirected to captive portal"));
         String aStr = F("http://");
         aStr += Server.client().localIP().toString();
-        //   aStr += F("/APSetup/WifiManagement.html");
+        aStr += F("/index.html");
         Server.sendHeader("Location", aStr, true);
-        //    Serveur.sendHeader("Location", String("http://") + Serveur.client().localIP().toString() + "/APSetup/WifiManagement.html", true);
         Server.send ( 302, "text/plain", "");
         Server.client().stop();
         D_println(F("WEB: --- GET closed with a 302"));
         return;
-      }
-    //
-      // Gestion des Helth Check
+      } // if captive page
+      //
+      // Gestion des Health Check
       if (Server.uri().endsWith("generate_204") ) {
-        Serial.println(F("Generate204"));
+        D_println(F("Generate204"));
         Server.setContentLength(0);
         Server.send ( 204 );
         Server.client().stop();
         D_println(F("WEB: --- GET closed with a 204"));
         return;
       }
-    //
-    //  // rearm timeout for captive portal
-    //  // to hide captive mode stop DNS captive if a request is good (hostheader=localip)
-    //  if (softAP) {
-    //    timerCaptivePortal = millis();
-    //    if (captiveDNS) captiveDNSStop();
-    //  }
-    //
-    //
+      //
+      //  // rearm timeout for captive portal
+      //  // to hide captive mode stop DNS captive if a request is good (hostheader=localip)
+      //  if (softAP) {
+      //    timerCaptivePortal = millis();
+      //    if (captiveDNS) captiveDNSStop();
+      //  }
+      //
+      //
+    }
   }
 
+  if ( fileName.length() == 0 ) fileName = '/';
   fileName += Server.uri();
   // todo   protection against ../
 
@@ -211,31 +236,19 @@ void HTTP_HandleRequests() {
   // if redirectTo(aUri) is set then an error 302 will be sent to redirect request
 
   TWS::redirectUri = "";
-  const String* submitPtr = nullptr;
+  String submitValue;
   if ( Server.hasArg(F("submit")) ) {
-    submitPtr = &(Server.arg(F("submit")));
-    Serial.print(F("WEB: Submit action '"));
-    Serial.print(*submitPtr);
-    Serial.println("'");
-    //    for (uint8_t i = 0; i < Server.args(); i++) {
-    //      String argname = Server.argName(i);
-    //      if ( !argname.equals(F("submit")) && !argname.equals(F("plain")) ) {
-    //        Serial.print(F("WEB: Submit arg "));
-    //        Serial.print(argname);
-    //        Serial.print(F("->"));
-    //        Serial.println(Server.arg(i));
-    //        String value = Server.arg(i);
-    //        //  onSubmit(value);   //appel du callback
-    //      }
-    //    }
-
+    submitValue = Server.arg(F("submit"));
+    D_print(F("WEB: Submit action '"));
+    D_print(submitValue);
+    D_println("'");
   }
 
-  onRequest(fileName, *submitPtr);
+  onStartRequest(fileName, submitValue);
 
   if (TWS::redirectUri.length() > 0) {
-    Serial.print(F("WEB redirect "));
-    Serial.println(TWS::redirectUri);
+    D_print(F("WEB redirect "));
+    D_println(TWS::redirectUri);
     Server.sendHeader("Location", TWS::redirectUri, true);
     Server.send ( 302, "text/plain", "");
     Server.client().stop();
@@ -252,24 +265,22 @@ void HTTP_HandleRequests() {
   // then they are sended back to client in a urlencoded string
   if (Server.method() == HTTP_POST && Server.args() > 0 && Server.argName(0) == "refresh") {
     // debug track
-    Serial.print(F("WEB: Query refresh ("));
-    Serial.print(Server.arg(Server.args() - 1).length());
-    Serial.print(F(") "));
-    Serial.println(Server.arg(Server.args() - 1)); // try to get 'plain'
+    D_print(F("WEB: Query refresh ("));
+    D_print(Server.arg(Server.args() - 1).length());
+    D_print(F(") "));
+    D_println(Server.arg(Server.args() - 1)); // try to get 'plain'
     // traitement des chaines par le Sketch
     String answer;
     answer.reserve(1000);   // should be max answer (all answers)
-    String aKey;
-    aKey.reserve(500);      // should be max for 1 value
-    String aKeyName;
-    aKeyName.reserve(50);
+    //String aKey;
+    //aKey.reserve(500);      // should be max for 1 value
     for (uint8_t N = 0; N < Server.args(); N++) {
       //     Serial.print(F("WEB: refresh "));
       //     Serial.print(Serveur.argName(N));
       //     Serial.print(F("="));
       //      Serial.println(Serveur.arg(N));
-      aKeyName = Server.argName(N);
-      aKey = Server.arg(N);
+      String aKeyName = Server.argName(N);
+      String aKey = Server.arg(N);
       if ( !aKeyName.equals(F("plain")) && onRefreshItem(aKeyName, aKey) ) {
         if (answer.length() > 0) answer += '&';
         answer +=  aKeyName;
@@ -296,17 +307,17 @@ void HTTP_HandleRequests() {
       } // valide keyname
     } // for each arg
 
-    Serial.print(F("WEB: refresh answer ("));
-    Serial.print(answer.length());
-    Serial.print(F(") "));
-    Serial.println(answer);
+    D_print(F("WEB: refresh answer ("));
+    D_print(answer.length());
+    D_print(F(") "));
+    D_println(answer);
     //
     Server.sendHeader("Cache-Control", "no-cache");
     Server.setContentLength(answer.length());
     Server.send(200, fileMIME.c_str(), answer);
     //    Serveur.client().stop();
-    //    Serial.print(answer.length());
-    //    Serial.println(F(" car."));
+    //    D_print(answer.length());
+    //    D_println(F(" car."));
 
 
     return;
@@ -332,8 +343,8 @@ void HTTP_HandleRequests() {
     Server.send(200, fileMIME.c_str());
     aFile.setTimeout(0);   // to avoid delay at EOF
     static    char aBuffer[1025];               // static dont overload heap
-    static    char repeatBuffer[1025];          // static dont overload heap
-    //todo avoid repeatBuffer if repeat not used
+    //static    char repeatBuffer[1025];          // static dont overload heap
+    String repeatString;
     int  repeatNumber;
     bool repeatActive = false;
     String aStrKey;  // la clef du repeat
@@ -363,13 +374,12 @@ void HTTP_HandleRequests() {
             int len = stopPtr - startPtr;
             if (  stopPtr && len >= 3 && len <= 40 ) { // grab keyword if stop ok and lenth of keyword under 40
               // grab keyword
-              char aKey[41];
-              strncpy(aKey, startPtr, len);
-              aKey[len] = 0x00;   // aKey is Cstring
-              aStrKey = aKey;
+              stopPtr[0] = 0x00;  // end of keyword
+              stopPtr +=2;        // skip "#]"
+              aStrKey = startPtr;
               aStrKey.trim();
-              // Save the line in  repeat buffer
-              strcpy(repeatBuffer, stopPtr + 2);
+              // Save the line in a string
+              repeatString = stopPtr;
               repeatActive = true;
               repeatNumber = 0;
             } // end if  repeat KEY ok
@@ -379,7 +389,7 @@ void HTTP_HandleRequests() {
           aBuffer[0] = 0x00;
           // ask the sketch if we should repeat
           repeatActive = onRepeatLine(aStrKey, repeatNumber++);
-          if ( repeatActive ) strcpy(aBuffer, repeatBuffer);
+          if ( repeatActive ) strcpy(aBuffer, repeatString.c_str());
           size = strlen(aBuffer);
         }
 
@@ -389,47 +399,44 @@ void HTTP_HandleRequests() {
           char* startPtr = currentPtr + 2;
           char* stopPtr = strstr( startPtr + 1, "#]" ); // at least 1 letter keyword [#  #]
           int len = stopPtr - startPtr;
-          if (  !stopPtr || len <= 0 || len >= 40 ) { // abort if no stop or lenth of keyword over 40
+          if (  !stopPtr || len <= 0 || len >= 50 ) { // abort if no stop or lenth of keyword over 50
             break;
           }
           // grab keyword
-          char aKey[41];
-          strncpy(aKey, startPtr, len);
-          aKey[len] = 0x00;   // aKey is Cstring
-          String aStr;
-          aStr.reserve(100);
-          aStr = aKey;
+          stopPtr[0] = 0x00;   // aKey is Cstring
+          stopPtr += 2;        // skip "#]"
+          String aStr = startPtr;
           aStr.trim();
           // callback to deal with keywords
           translateKey(aStr);
 
-          // Copie de la suite de la chaine ailleur
-          static  char bBuffer[500];   //  todo   deal correctly with over 500 char lines  // static dont overload heap
-          strncpy(bBuffer, stopPtr + 2, 500);
+          // Copie de la suite de la chaine dans une chaine
+          String bBuffer = stopPtr;
 
           // Ajout de la chaine de remplacement
-          strncpy(currentPtr, aStr.c_str(), 100);
-          currentPtr += aStr.length();
+          strncpy(currentPtr, aStr.c_str(), 200);
+          currentPtr += min(aStr.length(),200U);
           // Ajoute la suite
-          strncpy(currentPtr, bBuffer, 500);
+          strncpy(currentPtr, bBuffer.c_str(), 500);
           size = strlen(aBuffer);
 
           //
         }// while
       } // else do chunk
       //
-      //      Serial.print('.');
+      //      D_print('.');
       if (size) Server.sendContent_P(aBuffer, size);
     }  // if avail
     if (doChunk) Server.chunkedResponseFinalize();
-    //    Serial.println("<");
+    //    D_println("<");
     //Server.client().stop();
     D_println(F("WEB: GET answered with no stop "));
     aFile.close();
+    onEndOfRequest(fileName, submitValue);
     return;
   }
   //  deal with file not found
-  Serial.println("error 404");
+  D_println("error 404");
   String message = F("File Not Found\n");
   message += "URI: ";
   message += Server.uri();
@@ -437,12 +444,13 @@ void HTTP_HandleRequests() {
   message += (Server.method() == HTTP_GET) ? "GET" : "POST";
   message += F("\nArguments: ");
   message += Server.args(); // last is plain = all arg
+  D_println(message);
   message += F("\n<br>");
-  Serial.println(message);
   for (uint8_t i = 0; i < Server.args(); i++) {
     message += " " + Server.argName(i) + ": " + Server.arg(i) + "\n<br>";
   }
   message += "<H2><a href=\"/\">go home</a></H2><br>";
   Server.send(404, "text/html", message);
   Server.client().stop();
+
 }
