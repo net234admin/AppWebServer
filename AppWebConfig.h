@@ -46,7 +46,7 @@ class FileConfig {
 
     //  bool fromFile = false;  //mean was read from a file
     bool changed = false;   //need to be saved
-    String initInfo;        //version of ini file
+    String webName;         //name of the web pages (to check concordance with sketch)
     String deviceName;      //saved device name
     String defaultWebFolder;       //default web folder path   
     String captiveWebFolder;      //webfolder path for CativeAP

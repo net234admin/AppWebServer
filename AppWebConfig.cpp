@@ -33,10 +33,11 @@
 
 //String in FLASH (use FPSTR to get them)
 static const char F_captiveWebFolder[] PROGMEM = "captiveWebFolder";
+static const char F_webName[] PROGMEM = "webName";
 
 bool FileConfig::read() {
   changed = false;
-  initInfo = "";
+  webName = "!Not Found!";
   deviceName = "";            //invalid value are replacet by APPWEB_XXYY
   defaultWebFolder = ""; //F("/web");      //default value
   captiveWebFolder = ""; //F("/web/wifisetup");      //default value
@@ -62,9 +63,9 @@ bool FileConfig::read() {
     } else if ( aString.startsWith(FPSTR(F_captiveWebFolder)) ) {
       captiveWebFolder = getParam(aString);
       D_print(F("TW: captiveWebFolder ='")); D_print(captiveWebFolder); D_println("'");
-    } else if ( aString.startsWith(F("initInfo")) ) {
-      initInfo = getParam(aString);
-      D_print(F("TW: initInfo ='")); D_print(initInfo); D_println("'");
+    } else if ( aString.startsWith(FPSTR(F_webName)) ) {
+      webName = getParam(aString);
+      D_print(F("TW: webName ='")); D_print(webName); D_println("'");
     } else if ( aString.startsWith(F("deviceName")) ) {
       deviceName = getParam(aString);
       D_print(F("TW: deviceName ='")); D_print(deviceName); D_println("'");
@@ -106,9 +107,10 @@ bool FileConfig::save() {
     aFile.print("defaultWebFolder=");
     aFile.println(defaultWebFolder);
   }
-  if (initInfo.length() > 0) {
-    aFile.print("initInfo=");
-    aFile.println(initInfo);
+  if (webName.length() > 0) {
+    aFile.print(FPSTR(F_webName));
+    aFile.print("=");
+    aFile.println(webName);
   }
   if (bootForceAP > 0) {
     aFile.print(F("bootForceAP="));

@@ -369,6 +369,11 @@ void AppWebServer::handleEvent() {
 
 }
 
+String AppWebServer::getWebName() {
+  return TWConfig.webName;
+}
+
+
 void AppWebServer::setCallBack_OnTranslateKey(void (*ontranslatekey)(String & key))  {
   onTranslateKeyPtr =  ontranslatekey;
 }

@@ -77,6 +77,7 @@ class AppWebServer {
     void begin(const String devicename = "", const int debuglevel = 0 );                                  // main server start as was configured
     void end();                                     // main server stop
     bool razConfig();                               // efface la config enregistree
+    String getWebName();                            // return webName from the web config file (appWebServer.ini)
     //    TW_WiFiMode_t    getWiFiMode();  // Wifi Mode expected by user
     //    void             setWiFiMode(WiFiMode_t const mode, const char* ssid = NULL , const char* ssidpassword = NULL);
     //    void             setWiFiMode(WiFiMode_t const mode);
